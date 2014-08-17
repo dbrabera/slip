@@ -124,9 +124,9 @@ func (self *Reader) readIdent() Object {
 
 	switch lexeme := self.source[start:self.offset]; lexeme {
 	case "true":
-		return t
+		return NewBool(true)
 	case "false":
-		return f
+		return NewBool(false)
 	default:
 		panic("Unexpected lexeme")
 	}

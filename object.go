@@ -52,8 +52,16 @@ type Bool struct {
 	Value bool
 }
 
+var (
+	t Bool = Bool{Value: true}
+	f Bool = Bool{Value: false}
+)
+
 func NewBool(value bool) Object {
-	return &Bool{Value: value}
+	if value {
+		return &t
+	}
+	return &f
 }
 
 func (self *Bool) Eval() Object {

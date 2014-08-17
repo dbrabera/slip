@@ -8,11 +8,6 @@ import (
 	"github.com/peterh/liner"
 )
 
-var (
-	t Object
-	f Object
-)
-
 func main() {
 	os.Exit(repl())
 }
@@ -41,9 +36,4 @@ func repl() int {
 	}
 
 	return 0
-}
-
-func init() {
-	t = NewBool(true)
-	f = NewBool(false)
 }
