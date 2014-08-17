@@ -27,6 +27,25 @@ func (self *Int) String() string {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Double
+
+type Double struct {
+	Value float64
+}
+
+func NewDouble(value float64) *Double {
+	return &Double{Value: value}
+}
+
+func (self *Double) Eval() Object {
+	return self
+}
+
+func (self *Double) String() string {
+	return strconv.FormatFloat(self.Value, 'f', -1, 64)
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Boolean
 
 type Bool struct {

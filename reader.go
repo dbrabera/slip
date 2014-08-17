@@ -32,7 +32,13 @@ func (self *Reader) Read() Object {
 		return nil
 	case unicode.IsDigit(r):
 		self.undo()
-		return self.readInteger()
+		return self.readNumber()
+	case r == '+' || r == '-':
+		if unicode.IsDigit(self.peek()) {
+			self.undo()
+			return self.readNumber()
+		}
+		fallthrough
 	case isIdentHead(r):
 		self.undo()
 		return self.readIdent()
@@ -57,6 +63,12 @@ func (self *Reader) undo() {
 	self.offset -= 1
 }
 
+func (self *Reader) peek() rune {
+	r := self.next()
+	self.undo()
+	return r
+}
+
 func (self *Reader) ignoreWhitespace() {
 	for {
 		r := self.next()
@@ -67,18 +79,34 @@ func (self *Reader) ignoreWhitespace() {
 	}
 }
 
-func (self *Reader) readInteger() Object {
+func (self *Reader) readNumber() Object {
 	start := self.offset
+	point := false
+
+	if r := self.next(); r != '+' && r != '-' && !unicode.IsDigit(r) {
+		panic("Unexpected character")
+	}
+
 	for {
 		r := self.next()
+		if !point && r == '.' {
+			point = true
+			continue
+		}
+
 		if !unicode.IsDigit(r) {
 			self.undo()
 			break
 		}
 	}
-	value, _ := strconv.ParseInt(self.source[start:self.offset], 0, 0)
 
-	return NewInt(int(value))
+	if point {
+		value, _ := strconv.ParseFloat(self.source[start:self.offset], 64)
+		return NewDouble(value)
+	} else {
+		value, _ := strconv.ParseInt(self.source[start:self.offset], 0, 0)
+		return NewInt(int(value))
+	}
 }
 
 func (self *Reader) readIdent() Object {
