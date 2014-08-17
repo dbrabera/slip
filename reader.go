@@ -42,6 +42,9 @@ func (self *Reader) Read() Object {
 	case isIdentHead(r):
 		self.undo()
 		return self.readIdent()
+	case r == '"':
+		self.undo()
+		return self.readString()
 	default:
 		panic("Unexpected character")
 	}
@@ -138,4 +141,22 @@ func isIdentHead(r rune) bool {
 
 func isIdentBody(r rune) bool {
 	return isIdentHead(r) || unicode.IsDigit(r)
+}
+
+func (self *Reader) readString() Object {
+	if self.next() != '"' {
+		panic("Unexpected character")
+	}
+
+	start := self.offset
+	for {
+		switch self.next() {
+		case '"':
+			return NewString(self.source[start : self.offset-1])
+		case '\n', eof:
+			panic("Unexpected character")
+		default:
+			continue
+		}
+	}
 }

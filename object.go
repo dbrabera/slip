@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Object interface {
 	Eval() Object
@@ -70,4 +73,23 @@ func (self *Bool) Eval() Object {
 
 func (self *Bool) String() string {
 	return strconv.FormatBool(self.Value)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// String
+
+type String struct {
+	Value string
+}
+
+func NewString(value string) Object {
+	return &String{Value: value}
+}
+
+func (self *String) Eval() Object {
+	return self
+}
+
+func (self *String) String() string {
+	return fmt.Sprintf("\"%s\"", self.Value)
 }
