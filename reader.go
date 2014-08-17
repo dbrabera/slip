@@ -131,7 +131,7 @@ func (self *Reader) readIdent() Object {
 	case "false":
 		return NewBool(false)
 	default:
-		panic("Unexpected lexeme")
+		return NewSymbol(lexeme)
 	}
 }
 

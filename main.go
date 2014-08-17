@@ -8,6 +8,14 @@ import (
 	"github.com/peterh/liner"
 )
 
+type Enviroment struct {
+	Symbols map[string]Object
+}
+
+func NewEnviroment() *Enviroment {
+	return &Enviroment{Symbols: make(map[string]Object)}
+}
+
 func main() {
 	os.Exit(repl())
 }
@@ -17,6 +25,7 @@ func repl() int {
 	defer liner.Close()
 
 	reader := NewReader()
+	env := NewEnviroment()
 
 	for {
 		line, err := liner.Prompt("slip> ")
@@ -31,7 +40,7 @@ func repl() int {
 
 		reader.Init(line)
 		for obj := reader.Read(); obj != nil; obj = reader.Read() {
-			fmt.Println(obj.Eval())
+			fmt.Println(obj.Eval(env))
 		}
 	}
 

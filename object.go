@@ -6,7 +6,7 @@ import (
 )
 
 type Object interface {
-	Eval() Object
+	Eval(env *Enviroment) Object
 	String() string
 }
 
@@ -21,7 +21,7 @@ func NewInt(value int) *Int {
 	return &Int{Value: value}
 }
 
-func (self *Int) Eval() Object {
+func (self *Int) Eval(env *Enviroment) Object {
 	return self
 }
 
@@ -40,7 +40,7 @@ func NewDouble(value float64) *Double {
 	return &Double{Value: value}
 }
 
-func (self *Double) Eval() Object {
+func (self *Double) Eval(env *Enviroment) Object {
 	return self
 }
 
@@ -67,7 +67,7 @@ func NewBool(value bool) Object {
 	return &f
 }
 
-func (self *Bool) Eval() Object {
+func (self *Bool) Eval(env *Enviroment) Object {
 	return self
 }
 
@@ -86,10 +86,29 @@ func NewString(value string) Object {
 	return &String{Value: value}
 }
 
-func (self *String) Eval() Object {
+func (self *String) Eval(env *Enviroment) Object {
 	return self
 }
 
 func (self *String) String() string {
 	return fmt.Sprintf("\"%s\"", self.Value)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Symbol
+
+type Symbol struct {
+	Value string
+}
+
+func NewSymbol(value string) Object {
+	return &Symbol{Value: value}
+}
+
+func (self *Symbol) Eval(env *Enviroment) Object {
+	return env.Symbols[self.Value]
+}
+
+func (self *Symbol) String() string {
+	return self.Value
 }
