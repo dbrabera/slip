@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -32,6 +33,9 @@ func (self *Reader) Read() Object {
 	case unicode.IsDigit(r):
 		self.undo()
 		return self.readInteger()
+	case isIdentHead(r):
+		self.undo()
+		return self.readIdent()
 	default:
 		panic("Unexpected character")
 	}
@@ -75,4 +79,35 @@ func (self *Reader) readInteger() Object {
 	value, _ := strconv.ParseInt(self.source[start:self.offset], 0, 0)
 
 	return NewInt(int(value))
+}
+
+func (self *Reader) readIdent() Object {
+	start := self.offset
+	if !isIdentHead(self.next()) {
+		panic("Unexpected character")
+	}
+
+	for {
+		if !isIdentBody(self.next()) {
+			self.undo()
+			break
+		}
+	}
+
+	switch lexeme := self.source[start:self.offset]; lexeme {
+	case "true":
+		return t
+	case "false":
+		return f
+	default:
+		panic("Unexpected lexeme")
+	}
+}
+
+func isIdentHead(r rune) bool {
+	return unicode.IsLetter(r) || strings.IndexRune("*+!-_?><=$", r) >= 0
+}
+
+func isIdentBody(r rune) bool {
+	return isIdentHead(r) || unicode.IsDigit(r)
 }
