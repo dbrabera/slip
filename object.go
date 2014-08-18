@@ -60,7 +60,7 @@ var (
 	f Bool = Bool{Value: false}
 )
 
-func NewBool(value bool) Object {
+func NewBool(value bool) *Bool {
 	if value {
 		return &t
 	}
@@ -82,7 +82,7 @@ type String struct {
 	Value string
 }
 
-func NewString(value string) Object {
+func NewString(value string) *String {
 	return &String{Value: value}
 }
 
@@ -101,7 +101,7 @@ type Symbol struct {
 	Value string
 }
 
-func NewSymbol(value string) Object {
+func NewSymbol(value string) *Symbol {
 	return &Symbol{Value: value}
 }
 
@@ -111,4 +111,32 @@ func (self *Symbol) Eval(env *Enviroment) Object {
 
 func (self *Symbol) String() string {
 	return self.Value
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Cell
+
+type Cell struct {
+	First Object
+	More  *Cell
+}
+
+func NewCell(first Object, more *Cell) *Cell {
+	return &Cell{First: first, More: more}
+}
+
+func (self *Cell) Eval(env *Enviroment) Object {
+	return self
+}
+
+func (self *Cell) String() string {
+	return fmt.Sprintf("(%s)", self.string())
+}
+
+func (self *Cell) string() string {
+	if self.More == nil {
+		return self.First.String()
+	}
+
+	return fmt.Sprintf("%s %s", self.First.String(), self.More.string())
 }

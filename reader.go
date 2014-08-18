@@ -39,6 +39,9 @@ func (self *Reader) Read() Object {
 			return self.readNumber()
 		}
 		fallthrough
+	case r == '(':
+		self.undo()
+		return self.readList()
 	case isIdentHead(r):
 		self.undo()
 		return self.readIdent()
@@ -159,4 +162,38 @@ func (self *Reader) readString() Object {
 			continue
 		}
 	}
+}
+
+func (self *Reader) readList() Object {
+	if r := self.next(); r != '(' {
+		panic("Unexpected character")
+	}
+
+	var list *Cell = nil
+	var curr *Cell = nil
+
+	for {
+		self.ignoreWhitespace()
+
+		r := self.next()
+
+		if r == eof {
+			panic("EOF while reading")
+		} else if r == ')' {
+			break
+		}
+
+		self.undo()
+
+		obj := self.Read()
+		if curr == nil {
+			curr = NewCell(obj, nil)
+			list = curr
+		} else {
+			curr.More = NewCell(obj, nil)
+			curr = curr.More
+		}
+	}
+
+	return list
 }
