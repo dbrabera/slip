@@ -125,8 +125,35 @@ func NewCell(first Object, more *Cell) *Cell {
 	return &Cell{First: first, More: more}
 }
 
+func NewList(objs ...Object) *Cell {
+	var first *Cell = nil
+	var curr *Cell = nil
+
+	for _, obj := range objs {
+		if first == nil {
+			first = NewCell(obj, nil)
+			curr = first
+		} else {
+			curr.More = NewCell(obj, nil)
+			curr = curr.More
+		}
+	}
+
+	return first
+}
+
 func (self *Cell) Eval(env *Enviroment) Object {
-	return self
+	sym, ok := self.First.(*Symbol)
+	if !ok {
+		panic("Expecting symbol")
+	}
+
+	switch sym.Value {
+	case "quote":
+		return self.More.First
+	default:
+		panic("Unknown symbol")
+	}
 }
 
 func (self *Cell) String() string {

@@ -45,6 +45,8 @@ func (self *Reader) Read() Object {
 	case isIdentHead(r):
 		self.undo()
 		return self.readIdent()
+	case r == '\'':
+		return NewList(NewSymbol("quote"), self.Read())
 	case r == '"':
 		self.undo()
 		return self.readString()
