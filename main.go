@@ -9,11 +9,19 @@ import (
 )
 
 type Enviroment struct {
-	Symbols map[string]Object
+	symbols map[string]Object
 }
 
 func NewEnviroment() *Enviroment {
-	return &Enviroment{Symbols: make(map[string]Object)}
+	return &Enviroment{symbols: make(map[string]Object)}
+}
+
+func (self *Enviroment) Define(sym *Symbol, obj Object) {
+	self.symbols[sym.Value] = obj
+}
+
+func (self *Enviroment) Resolve(sym *Symbol) Object {
+	return self.symbols[sym.Value]
 }
 
 func main() {

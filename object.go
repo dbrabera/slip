@@ -106,7 +106,7 @@ func NewSymbol(value string) *Symbol {
 }
 
 func (self *Symbol) Eval(env *Enviroment) Object {
-	return env.Symbols[self.Value]
+	return env.Resolve(self)
 }
 
 func (self *Symbol) String() string {
@@ -117,12 +117,12 @@ func (self *Symbol) String() string {
 // Cell
 
 type Cell struct {
-	First Object
-	More  *Cell
+	Value Object
+	Next  *Cell
 }
 
 func NewCell(first Object, more *Cell) *Cell {
-	return &Cell{First: first, More: more}
+	return &Cell{Value: first, Next: more}
 }
 
 func NewList(objs ...Object) *Cell {
@@ -134,8 +134,8 @@ func NewList(objs ...Object) *Cell {
 			first = NewCell(obj, nil)
 			curr = first
 		} else {
-			curr.More = NewCell(obj, nil)
-			curr = curr.More
+			curr.Next = NewCell(obj, nil)
+			curr = curr.Next
 		}
 	}
 
@@ -143,14 +143,21 @@ func NewList(objs ...Object) *Cell {
 }
 
 func (self *Cell) Eval(env *Enviroment) Object {
-	sym, ok := self.First.(*Symbol)
+	sym, ok := self.Value.(*Symbol)
 	if !ok {
 		panic("Expecting symbol")
 	}
 
 	switch sym.Value {
 	case "quote":
-		return self.More.First
+		return self.Nth(1)
+	case "def":
+		if sym, ok := self.Nth(1).(*Symbol); ok {
+			env.Define(sym, self.Nth(2))
+			return nil
+		} else {
+			panic("Expecting symbol")
+		}
 	default:
 		panic("Unknown symbol")
 	}
@@ -161,9 +168,19 @@ func (self *Cell) String() string {
 }
 
 func (self *Cell) string() string {
-	if self.More == nil {
-		return self.First.String()
+	if self.Next == nil {
+		return self.Value.String()
 	}
 
-	return fmt.Sprintf("%s %s", self.First.String(), self.More.string())
+	return fmt.Sprintf("%s %s", self.Value.String(), self.Next.string())
+}
+
+func (self *Cell) Nth(n int) Object {
+	for i, cell := 0, self; i <= n && cell != nil; i, cell = i+1, cell.Next {
+		if i == n {
+			return cell.Value
+		}
+	}
+
+	panic("Out of bounds")
 }

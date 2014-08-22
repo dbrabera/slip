@@ -192,8 +192,8 @@ func (self *Reader) readList() Object {
 			curr = NewCell(obj, nil)
 			list = curr
 		} else {
-			curr.More = NewCell(obj, nil)
-			curr = curr.More
+			curr.Next = NewCell(obj, nil)
+			curr = curr.Next
 		}
 	}
 
