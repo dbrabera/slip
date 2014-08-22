@@ -151,13 +151,23 @@ func (self *Cell) Eval(env *Enviroment) Object {
 	switch sym.Value {
 	case "quote":
 		return self.Nth(1)
+
 	case "def":
 		if sym, ok := self.Nth(1).(*Symbol); ok {
 			env.Define(sym, self.Nth(2))
 			return nil
-		} else {
-			panic("Expecting symbol")
 		}
+		panic("Expecting symbol")
+
+	case "if":
+		test := self.Nth(1).Eval(env)
+		if b, ok := test.(*Bool); test != nil && (!ok || b.Value) {
+			return self.Nth(2).Eval(env)
+		} else if self.Nth(3) != nil {
+			return self.Nth(3).Eval(env)
+		}
+		return nil
+
 	default:
 		panic("Unknown symbol")
 	}
@@ -182,5 +192,5 @@ func (self *Cell) Nth(n int) Object {
 		}
 	}
 
-	panic("Out of bounds")
+	return nil
 }
