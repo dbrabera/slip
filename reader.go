@@ -39,12 +39,12 @@ func (self *Reader) Read() Object {
 			return self.readNumber()
 		}
 		fallthrough
-	case r == '(':
-		self.undo()
-		return self.readList()
 	case isIdentHead(r):
 		self.undo()
 		return self.readIdent()
+	case r == '(':
+		self.undo()
+		return self.readList()
 	case r == '\'':
 		return NewList(NewSymbol("quote"), self.Read())
 	case r == '"':
@@ -141,7 +141,7 @@ func (self *Reader) readIdent() Object {
 }
 
 func isIdentHead(r rune) bool {
-	return unicode.IsLetter(r) || strings.IndexRune("*+!-_?><=$", r) >= 0
+	return unicode.IsLetter(r) || strings.IndexRune("+-*/_!?><=$", r) >= 0
 }
 
 func isIdentBody(r rune) bool {
@@ -192,8 +192,8 @@ func (self *Reader) readList() Object {
 			curr = NewCell(obj, nil)
 			list = curr
 		} else {
-			curr.Next = NewCell(obj, nil)
-			curr = curr.Next
+			curr.More = NewCell(obj, nil)
+			curr = curr.More
 		}
 	}
 

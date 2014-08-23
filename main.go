@@ -35,6 +35,18 @@ func repl() int {
 	reader := NewReader()
 	env := NewEnviroment()
 
+	env.Define(NewSymbol("+"), NewProcedure(AddProc))
+	env.Define(NewSymbol("-"), NewProcedure(SubProc))
+	env.Define(NewSymbol("*"), NewProcedure(MulProc))
+	env.Define(NewSymbol("/"), NewProcedure(DivProc))
+	env.Define(NewSymbol(">"), NewProcedure(GtProc))
+	env.Define(NewSymbol(">="), NewProcedure(GeProc))
+	env.Define(NewSymbol("="), NewProcedure(EqProc))
+	env.Define(NewSymbol("<="), NewProcedure(LeProc))
+	env.Define(NewSymbol("<"), NewProcedure(LtProc))
+	env.Define(NewSymbol("first"), NewProcedure(FirstProc))
+	env.Define(NewSymbol("next"), NewProcedure(NextProc))
+
 	for {
 		line, err := liner.Prompt("slip> ")
 
