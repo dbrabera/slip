@@ -171,7 +171,7 @@ func (self *Reader) readList() Object {
 		panic("Unexpected character")
 	}
 
-	var list *Cell = nil
+	var front *Cell = &Cell{}
 	var curr *Cell = nil
 
 	for {
@@ -189,13 +189,13 @@ func (self *Reader) readList() Object {
 
 		obj := self.Read()
 		if curr == nil {
-			curr = NewCell(obj, nil)
-			list = curr
+			front.Value = obj
+			curr = front
 		} else {
 			curr.More = NewCell(obj, nil)
 			curr = curr.More
 		}
 	}
 
-	return list
+	return front
 }

@@ -33,6 +33,12 @@ type List interface {
 	Next() List
 	Nth(int) Object
 	Cons(Object) Object
+	IsEmpty() bool
+}
+
+type Func interface {
+	Object
+	Apply(List) Object
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -368,6 +374,10 @@ func NewList(objs ...Object) *Cell {
 }
 
 func (self *Cell) Eval(env *Enviroment) Object {
+	if self.IsEmpty() {
+		return self
+	}
+
 	sym := self.Value.(*Symbol)
 
 	switch sym.Value {
@@ -376,7 +386,7 @@ func (self *Cell) Eval(env *Enviroment) Object {
 
 	case "def":
 		sym := self.Nth(1).(*Symbol)
-		env.Define(sym, self.Nth(2))
+		env.Define(sym, self.Nth(2).Eval(env))
 		return nil
 
 	case "if":
@@ -390,8 +400,18 @@ func (self *Cell) Eval(env *Enviroment) Object {
 
 		return nil
 
+	case "fn":
+		return NewCompFunc(self.Nth(1).(List), self.Nth(2), env)
+
+	case "defn":
+		sym := self.Nth(1).(*Symbol)
+		fn := NewCompFunc(self.Nth(2).(List), self.Nth(3), env)
+		env.Define(sym, fn)
+
+		return nil
+
 	default:
-		proc := env.Resolve(sym).(PrimFunc)
+		proc := env.Resolve(sym).(Func)
 		args := self.Next()
 		var curr *Cell
 		var front *Cell
@@ -412,11 +432,15 @@ func (self *Cell) Eval(env *Enviroment) Object {
 }
 
 func (self *Cell) String() string {
+	if self.IsEmpty() {
+		return "()"
+	}
+
 	return fmt.Sprintf("(%s)", self.string())
 }
 
 func (self *Cell) string() string {
-	if self.Next == nil {
+	if self.More == nil {
 		return self.Value.String()
 	}
 
@@ -475,8 +499,12 @@ func (self *Cell) Cons(obj Object) Object {
 	return NewCell(obj, self)
 }
 
+func (self *Cell) IsEmpty() bool {
+	return self == nil || self.Value == nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////
-// Primitive function
+// Primitive Function
 
 type PrimFunc func(List) Object
 
@@ -497,5 +525,49 @@ func (self PrimFunc) Nil() bool {
 }
 
 func (self PrimFunc) Equals(obj Object) bool {
+	return false
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Compound Function
+
+type CompFunc struct {
+	params List
+	body   Object
+	env    *Enviroment
+}
+
+func NewCompFunc(params List, body Object, env *Enviroment) *CompFunc {
+	return &CompFunc{params: params, body: body, env: env}
+}
+
+func (self *CompFunc) Eval(env *Enviroment) Object {
+	return self
+}
+
+func (self *CompFunc) Apply(args List) Object {
+	// set args in the enviroment
+	env := NewChildEnviroment(self.env)
+	params := self.params
+
+	for !params.IsEmpty() {
+		psym := params.First().(*Symbol)
+		env.Define(psym, args.First())
+		params = params.Next()
+		args = args.Next()
+	}
+
+	return self.body.Eval(env)
+}
+
+func (self *CompFunc) String() string {
+	return "<function>"
+}
+
+func (self *CompFunc) Nil() bool {
+	return self == nil
+}
+
+func (self *CompFunc) Equals(obj Object) bool {
 	return false
 }
