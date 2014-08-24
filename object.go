@@ -22,13 +22,17 @@ type Number interface {
 	Ge(Number) bool
 	Le(Number) bool
 	Lt(Number) bool
+	Inc() Number
+	Dec() Number
 }
 
 type List interface {
 	Object
 	First() Object
+	Second() Object
 	Next() List
 	Nth(int) Object
+	Cons(Object) Object
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -94,6 +98,10 @@ func (self *Int) Div(n Number) Number {
 	return NewInt(self.Value / n.(*Int).Value)
 }
 
+func (self *Int) Rem(div Number) Number {
+	return NewInt(self.Value % div.(*Int).Value)
+}
+
 func (self *Int) Gt(n Number) bool {
 	if n, ok := n.(*Double); ok {
 		return float64(self.Value) > n.Value
@@ -120,6 +128,14 @@ func (self *Int) Lt(n Number) bool {
 		return float64(self.Value) < n.Value
 	}
 	return self.Value < n.(*Int).Value
+}
+
+func (self *Int) Inc() Number {
+	return NewInt(self.Value + 1)
+}
+
+func (self *Int) Dec() Number {
+	return NewInt(self.Value - 1)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -213,6 +229,14 @@ func (self *Double) Lt(n Number) bool {
 	return self.Value < n.(*Double).Value
 }
 
+func (self *Double) Inc() Number {
+	return NewDouble(self.Value + 1.0)
+}
+
+func (self *Double) Dec() Number {
+	return NewDouble(self.Value - 1.0)
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Boolean
 
@@ -221,15 +245,15 @@ type Bool struct {
 }
 
 var (
-	truecons Bool = Bool{Value: true}
-	falscons Bool = Bool{Value: false}
+	truecons  Bool = Bool{Value: true}
+	falsecons Bool = Bool{Value: false}
 )
 
 func NewBool(value bool) *Bool {
 	if value {
 		return &truecons
 	}
-	return &falscons
+	return &falsecons
 }
 
 func (self *Bool) Eval(env *Enviroment) Object {
@@ -421,6 +445,10 @@ func (self *Cell) First() Object {
 	return self.Value
 }
 
+func (self *Cell) Second() Object {
+	return self.Next().First()
+}
+
 func (self *Cell) Next() List {
 	if self == nil {
 		return nil
@@ -441,6 +469,10 @@ func (self *Cell) Nth(n int) Object {
 	}
 
 	return nil
+}
+
+func (self *Cell) Cons(obj Object) Object {
+	return NewCell(obj, self)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
