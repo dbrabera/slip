@@ -391,7 +391,7 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		return nil
 
 	default:
-		proc := env.Resolve(sym).(*Procedure)
+		proc := env.Resolve(sym).(PrimFunc)
 		args := self.Next()
 		var curr *Cell
 		var front *Cell
@@ -476,32 +476,26 @@ func (self *Cell) Cons(obj Object) Object {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Procedure
+// Primitive function
 
-type Procedure struct {
-	Value ProcFn
-}
+type PrimFunc func(List) Object
 
-func NewProcedure(value ProcFn) *Procedure {
-	return &Procedure{Value: value}
-}
-
-func (self *Procedure) Eval(env *Enviroment) Object {
+func (self PrimFunc) Eval(env *Enviroment) Object {
 	return self
 }
 
-func (self *Procedure) Apply(args List) Object {
-	return self.Value(args)
+func (self PrimFunc) Apply(args List) Object {
+	return self(args)
 }
 
-func (self *Procedure) String() string {
-	return "<procedure>"
+func (self PrimFunc) String() string {
+	return "<function>"
 }
 
-func (self *Procedure) Nil() bool {
+func (self PrimFunc) Nil() bool {
 	return self == nil
 }
 
-func (self *Procedure) Equals(obj Object) bool {
+func (self PrimFunc) Equals(obj Object) bool {
 	return false
 }

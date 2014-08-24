@@ -2,59 +2,57 @@ package main
 
 import "fmt"
 
-type ProcFn func(List) Object
-
-var CoreProcs = map[string]ProcFn{
+var CoreFuncs = map[string]PrimFunc{
 	// Arithmetic
-	"+":   AddProc,
-	"-":   SubProc,
-	"*":   MulProc,
-	"/":   DivProc,
-	"rem": RemProc,
-	//"mod": ModProc,
-	"inc": IncProc,
-	"dec": DecProc,
+	"+":   AddFunc,
+	"-":   SubFunc,
+	"*":   MulFunc,
+	"/":   DivFunc,
+	"rem": RemFunc,
+	//"mod": ModFunc,
+	"inc": IncFunc,
+	"dec": DecFunc,
 
 	// Relational
-	">":  GtProc,
-	">=": GeProc,
-	"=":  EqProc,
-	"!=": NeProc,
-	"<=": LeProc,
-	"<":  LtProc,
+	">":  GtFunc,
+	">=": GeFunc,
+	"=":  EqFunc,
+	"!=": NeFunc,
+	"<=": LeFunc,
+	"<":  LtFunc,
 
 	// Test
-	"nil?":    IsNilProc,
-	"zero?":   IsZeroProc,
-	"pos?":    IsPosProc,
-	"neg?":    IsNegProc,
-	"even?":   IsEvenProc,
-	"odd?":    IsOddProc,
-	"empty?":  IsEmptyProc,
-	"int?":    IsIntProc,
-	"double?": IsDoubleProc,
-	"bool?":   IsBoolProc,
-	"string?": IsStringProc,
-	"list?":   IsListProc,
-	"symbol?": IsSymbolProc,
+	"nil?":    IsNilFunc,
+	"zero?":   IsZeroFunc,
+	"pos?":    IsPosFunc,
+	"neg?":    IsNegFunc,
+	"even?":   IsEvenFunc,
+	"odd?":    IsOddFunc,
+	"empty?":  IsEmptyFunc,
+	"int?":    IsIntFunc,
+	"double?": IsDoubleFunc,
+	"bool?":   IsBoolFunc,
+	"string?": IsStringFunc,
+	"list?":   IsListFunc,
+	"symbol?": IsSymbolFunc,
 
 	// List
-	"first": FirstProc,
-	"next":  NextProc,
-	"cons":  ConsProc,
+	"first": FirstFunc,
+	"next":  NextFunc,
+	"cons":  ConsFunc,
 
 	// IO
-	"print": PrintProc,
-	//"printf": PrintfProc,
-	"println": PrintlnProc,
-	"newline": NewlineProc,
-	//"readline": ReadlineProc,
+	"print": PrintFunc,
+	//"printf": PrintfFunc,
+	"println": PrintlnFunc,
+	"newline": NewlineFunc,
+	//"readline": ReadlineFunc,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Arithmetic
 
-func AddProc(args List) Object {
+func AddFunc(args List) Object {
 	res := args.First().(Number)
 
 	for !args.Next().Nil() {
@@ -65,7 +63,7 @@ func AddProc(args List) Object {
 	return res
 }
 
-func SubProc(args List) Object {
+func SubFunc(args List) Object {
 	res := args.First().(Number)
 
 	for !args.Next().Nil() {
@@ -76,7 +74,7 @@ func SubProc(args List) Object {
 	return res
 }
 
-func MulProc(args List) Object {
+func MulFunc(args List) Object {
 	res := args.First().(Number)
 
 	for !args.Next().Nil() {
@@ -87,7 +85,7 @@ func MulProc(args List) Object {
 	return res
 }
 
-func DivProc(args List) Object {
+func DivFunc(args List) Object {
 	res := args.First().(Number)
 
 	for !args.Next().Nil() {
@@ -98,24 +96,24 @@ func DivProc(args List) Object {
 	return res
 }
 
-func RemProc(args List) Object {
+func RemFunc(args List) Object {
 	num := args.First().(*Int)
 	div := args.Second().(*Int)
 	return num.Rem(div)
 }
 
-func IncProc(args List) Object {
+func IncFunc(args List) Object {
 	return args.First().(Number).Inc()
 }
 
-func DecProc(args List) Object {
+func DecFunc(args List) Object {
 	return args.First().(Number).Dec()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Relational
 
-func GtProc(args List) Object {
+func GtFunc(args List) Object {
 	res := true
 	x := args.First().(Number)
 
@@ -129,7 +127,7 @@ func GtProc(args List) Object {
 	return NewBool(res)
 }
 
-func GeProc(args List) Object {
+func GeFunc(args List) Object {
 	res := true
 	x := args.First().(Number)
 
@@ -143,7 +141,7 @@ func GeProc(args List) Object {
 	return NewBool(res)
 }
 
-func EqProc(args List) Object {
+func EqFunc(args List) Object {
 	res := true
 	x := args.First()
 
@@ -155,11 +153,11 @@ func EqProc(args List) Object {
 	return NewBool(res)
 }
 
-func NeProc(args List) Object {
-	return NewBool(!EqProc(args).(*Bool).Value)
+func NeFunc(args List) Object {
+	return NewBool(!EqFunc(args).(*Bool).Value)
 }
 
-func LeProc(args List) Object {
+func LeFunc(args List) Object {
 	res := true
 	x := args.First().(Number)
 
@@ -173,7 +171,7 @@ func LeProc(args List) Object {
 	return NewBool(res)
 }
 
-func LtProc(args List) Object {
+func LtFunc(args List) Object {
 	res := true
 	x := args.First().(Number)
 
@@ -190,70 +188,70 @@ func LtProc(args List) Object {
 ////////////////////////////////////////////////////////////////////////////////
 // Logic
 
-func NotProc(args List) Object {
+func NotFunc(args List) Object {
 	return NewBool(args.First().Equals(&falsecons))
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests
 
-func IsNilProc(args List) Object {
+func IsNilFunc(args List) Object {
 	return NewBool(args.First().Nil())
 }
 
-func IsZeroProc(args List) Object {
+func IsZeroFunc(args List) Object {
 	return NewBool(args.First().(Number).Equals(NewInt(0)))
 }
 
-func IsPosProc(args List) Object {
+func IsPosFunc(args List) Object {
 	return NewBool(args.First().(Number).Gt(NewInt(0)))
 }
 
-func IsNegProc(args List) Object {
+func IsNegFunc(args List) Object {
 	return NewBool(args.First().(Number).Lt(NewInt(0)))
 }
 
-func IsEvenProc(args List) Object {
+func IsEvenFunc(args List) Object {
 	x := args.First().(*Int)
 	return NewBool(x.Value%2 == 0)
 }
 
-func IsOddProc(args List) Object {
+func IsOddFunc(args List) Object {
 	x := args.First().(*Int)
 	return NewBool(x.Value%2 != 0)
 }
 
-func IsEmptyProc(args List) Object {
+func IsEmptyFunc(args List) Object {
 	l := args.First().(List)
 	return NewBool(l.First().Nil())
 }
 
-func IsIntProc(args List) Object {
+func IsIntFunc(args List) Object {
 	_, ok := args.First().(*Int)
 	return NewBool(ok)
 }
 
-func IsDoubleProc(args List) Object {
+func IsDoubleFunc(args List) Object {
 	_, ok := args.First().(*Double)
 	return NewBool(ok)
 }
 
-func IsBoolProc(args List) Object {
+func IsBoolFunc(args List) Object {
 	_, ok := args.First().(*Bool)
 	return NewBool(ok)
 }
 
-func IsStringProc(args List) Object {
+func IsStringFunc(args List) Object {
 	_, ok := args.First().(*String)
 	return NewBool(ok)
 }
 
-func IsListProc(args List) Object {
+func IsListFunc(args List) Object {
 	_, ok := args.First().(*Cell)
 	return NewBool(ok)
 }
 
-func IsSymbolProc(args List) Object {
+func IsSymbolFunc(args List) Object {
 	_, ok := args.First().(*Symbol)
 	return NewBool(ok)
 }
@@ -261,15 +259,15 @@ func IsSymbolProc(args List) Object {
 ////////////////////////////////////////////////////////////////////////////////
 // List
 
-func FirstProc(args List) Object {
+func FirstFunc(args List) Object {
 	return args.First().(List).First()
 }
 
-func NextProc(args List) Object {
+func NextFunc(args List) Object {
 	return args.First().(List).Next()
 }
 
-func ConsProc(args List) Object {
+func ConsFunc(args List) Object {
 	x := args.First()
 	l := args.Second().(List)
 	l.Cons(x)
@@ -279,7 +277,7 @@ func ConsProc(args List) Object {
 ////////////////////////////////////////////////////////////////////////////////
 // IO
 
-func PrintProc(args List) Object {
+func PrintFunc(args List) Object {
 	for !args.Nil() {
 		fmt.Print(args.First())
 		args = args.Next()
@@ -290,13 +288,13 @@ func PrintProc(args List) Object {
 	return nil
 }
 
-func PrintlnProc(args List) Object {
-	PrintProc(args)
+func PrintlnFunc(args List) Object {
+	PrintFunc(args)
 	fmt.Println()
 	return nil
 }
 
-func NewlineProc(args List) Object {
+func NewlineFunc(args List) Object {
 	fmt.Println()
 	return nil
 }

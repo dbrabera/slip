@@ -35,8 +35,8 @@ func repl() int {
 	reader := NewReader()
 	env := NewEnviroment()
 
-	for name, procFn := range CoreProcs {
-		env.Define(NewSymbol(name), NewProcedure(procFn))
+	for name, fn := range CoreFuncs {
+		env.Define(NewSymbol(name), fn)
 	}
 
 	for {
