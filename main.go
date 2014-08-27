@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -59,12 +58,7 @@ func main() {
 	slip := NewSlip()
 
 	if options.Script != "" {
-		source, err := ioutil.ReadFile(options.Script)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading script: %s\n", err)
-			os.Exit(1)
-		}
-		os.Exit(slip.Run(string(source)))
+		os.Exit(slip.Run(options.Script))
 	} else {
 		os.Exit(slip.Repl())
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/peterh/liner"
@@ -50,12 +51,24 @@ func (self *Slip) Repl() int {
 	return 0
 }
 
-func (self *Slip) Run(src string) int {
-	self.reader.Init(src)
+func (self *Slip) Run(filename string) int {
+	src, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading script: %s\n", err)
+		return 1
+	}
+
+	self.reader.Init(string(src))
 	for obj := self.reader.Read(); obj != nil; obj = self.reader.Read() {
 		obj.Eval(self.env)
 	}
 	return 0
+}
+
+func (self *Slip) Exec(src string) Object {
+	self.reader.Init(src)
+	obj := self.reader.Read()
+	return obj.Eval(self.env)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

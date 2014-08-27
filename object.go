@@ -456,7 +456,7 @@ func (self *Cell) Nil() bool {
 func (self *Cell) Equals(obj Object) bool {
 	if c, ok := obj.(*Cell); ok {
 		if self.Value.Equals(c.Value) {
-			return self.More.Equals(c.More)
+			return (self.More == nil && c.More == nil) || self.More.Equals(c.More)
 		}
 	}
 
@@ -519,6 +519,10 @@ func (self *Cell) Vector() []Object {
 }
 
 func (self *Cell) Len() int {
+	if self == nil {
+		return 0
+	}
+
 	i := 1
 	for curr := self; curr.More != nil; curr = curr.More {
 		i += 1

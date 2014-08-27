@@ -21,6 +21,9 @@ var CoreFuncs = map[string]interface{}{
 	"<=": Le,
 	"<":  Lt,
 
+	// Logic
+	"not": Not,
+
 	// Test
 	"nil?":    IsNil,
 	"zero?":   IsZero,
@@ -63,6 +66,10 @@ func Add(args ...Object) Object {
 }
 
 func Sub(args ...Object) Object {
+	if len(args) == 1 {
+		return NewInt(0).Sub(args[0].(Number))
+	}
+
 	res := args[0].(Number)
 
 	for _, arg := range args[1:] {
@@ -83,6 +90,10 @@ func Mul(args ...Object) Object {
 }
 
 func Div(args ...Object) Object {
+	if len(args) == 1 {
+		return NewDouble(1.0).Div(args[0].(Number))
+	}
+
 	res := args[0].(Number)
 
 	for _, arg := range args[1:] {
@@ -136,10 +147,10 @@ func Ge(args ...Object) Object {
 }
 
 func Eq(args ...Object) Object {
-	x := args[0].(Number)
+	x := args[0]
 
 	for _, arg := range args[1:] {
-		y := arg.(Number)
+		y := arg
 		if !x.Equals(y) {
 			return NewBool(false)
 		}
@@ -261,8 +272,7 @@ func Next(ls Object) Object {
 }
 
 func Cons(x Object, ls Object) Object {
-	ls.(List).Cons(x)
-	return ls
+	return ls.(List).Cons(x)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
