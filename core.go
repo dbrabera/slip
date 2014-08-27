@@ -2,299 +2,290 @@ package main
 
 import "fmt"
 
-var CoreFuncs = map[string]PrimFunc{
+var CoreFuncs = map[string]interface{}{
 	// Arithmetic
-	"+":   AddFunc,
-	"-":   SubFunc,
-	"*":   MulFunc,
-	"/":   DivFunc,
-	"rem": RemFunc,
-	//"mod": ModFunc,
-	"inc": IncFunc,
-	"dec": DecFunc,
+	"+":   Add,
+	"-":   Sub,
+	"*":   Mul,
+	"/":   Div,
+	"rem": Rem,
+	//"mod": Mod,
+	"inc": Inc,
+	"dec": Dec,
 
 	// Relational
-	">":  GtFunc,
-	">=": GeFunc,
-	"=":  EqFunc,
-	"!=": NeFunc,
-	"<=": LeFunc,
-	"<":  LtFunc,
+	">":  Gt,
+	">=": Ge,
+	"=":  Eq,
+	"!=": Ne,
+	"<=": Le,
+	"<":  Lt,
 
 	// Test
-	"nil?":    IsNilFunc,
-	"zero?":   IsZeroFunc,
-	"pos?":    IsPosFunc,
-	"neg?":    IsNegFunc,
-	"even?":   IsEvenFunc,
-	"odd?":    IsOddFunc,
-	"empty?":  IsEmptyFunc,
-	"int?":    IsIntFunc,
-	"double?": IsDoubleFunc,
-	"bool?":   IsBoolFunc,
-	"string?": IsStringFunc,
-	"list?":   IsListFunc,
-	"symbol?": IsSymbolFunc,
+	"nil?":    IsNil,
+	"zero?":   IsZero,
+	"pos?":    IsPos,
+	"neg?":    IsNeg,
+	"even?":   IsEven,
+	"odd?":    IsOdd,
+	"empty?":  IsEmpty,
+	"int?":    IsInt,
+	"double?": IsDouble,
+	"bool?":   IsBool,
+	"string?": IsString,
+	"list?":   IsList,
+	"symbol?": IsSymbol,
 
 	// List
-	"first": FirstFunc,
-	"next":  NextFunc,
-	"cons":  ConsFunc,
+	"first": First,
+	"next":  Next,
+	"cons":  Cons,
 
 	// IO
-	"print": PrintFunc,
-	//"printf": PrintfFunc,
-	"println": PrintlnFunc,
-	"newline": NewlineFunc,
-	//"readline": ReadlineFunc,
+	"print": Print,
+	//"printf": Printf,
+	"println": Println,
+	"newline": Newline,
+	//"readline": Readline,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Arithmetic
 
-func AddFunc(args List) Object {
-	res := args.First().(Number)
+func Add(args ...Object) Object {
+	res := args[0].(Number)
 
-	for !args.Next().Nil() {
-		args = args.Next()
-		res = res.Add(args.First().(Number))
+	for _, arg := range args[1:] {
+		res = res.Add(arg.(Number))
 	}
 
 	return res
 }
 
-func SubFunc(args List) Object {
-	res := args.First().(Number)
+func Sub(args ...Object) Object {
+	res := args[0].(Number)
 
-	for !args.Next().Nil() {
-		args = args.Next()
-		res = res.Sub(args.First().(Number))
+	for _, arg := range args[1:] {
+		res = res.Sub(arg.(Number))
 	}
 
 	return res
 }
 
-func MulFunc(args List) Object {
-	res := args.First().(Number)
+func Mul(args ...Object) Object {
+	res := args[0].(Number)
 
-	for !args.Next().Nil() {
-		args = args.Next()
-		res = res.Mul(args.First().(Number))
+	for _, arg := range args[1:] {
+		res = res.Mul(arg.(Number))
 	}
 
 	return res
 }
 
-func DivFunc(args List) Object {
-	res := args.First().(Number)
+func Div(args ...Object) Object {
+	res := args[0].(Number)
 
-	for !args.Next().Nil() {
-		args = args.Next()
-		res = res.Div(args.First().(Number))
+	for _, arg := range args[1:] {
+		res = res.Div(arg.(Number))
 	}
 
 	return res
 }
 
-func RemFunc(args List) Object {
-	num := args.First().(*Int)
-	div := args.Second().(*Int)
-	return num.Rem(div)
+func Rem(num Object, div Object) Object {
+	return num.(*Int).Rem(div.(*Int))
 }
 
-func IncFunc(args List) Object {
-	return args.First().(Number).Inc()
+func Inc(x Object) Object {
+	return x.(Number).Inc()
 }
 
-func DecFunc(args List) Object {
-	return args.First().(Number).Dec()
+func Dec(x Object) Object {
+	return x.(Number).Dec()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Relational
 
-func GtFunc(args List) Object {
-	res := true
-	x := args.First().(Number)
+func Gt(args ...Object) Object {
+	x := args[0].(Number)
 
-	for !args.Next().Nil() && res {
-		args = args.Next()
-		y := args.First().(Number)
-		res = x.Gt(y)
+	for _, arg := range args[1:] {
+		y := arg.(Number)
+		if !x.Gt(y) {
+			return NewBool(false)
+		}
 		x = y
 	}
 
-	return NewBool(res)
+	return NewBool(true)
 }
 
-func GeFunc(args List) Object {
-	res := true
-	x := args.First().(Number)
+func Ge(args ...Object) Object {
+	x := args[0].(Number)
 
-	for !args.Next().Nil() && res {
-		args = args.Next()
-		y := args.First().(Number)
-		res = x.Ge(y)
+	for _, arg := range args[1:] {
+		y := arg.(Number)
+		if !x.Ge(y) {
+			return NewBool(false)
+		}
 		x = y
 	}
 
-	return NewBool(res)
+	return NewBool(true)
 }
 
-func EqFunc(args List) Object {
-	res := true
-	x := args.First()
+func Eq(args ...Object) Object {
+	x := args[0].(Number)
 
-	for !args.Next().Nil() && res {
-		args = args.Next()
-		res = x.Equals(args.First())
-	}
-
-	return NewBool(res)
-}
-
-func NeFunc(args List) Object {
-	return NewBool(!EqFunc(args).(*Bool).Value)
-}
-
-func LeFunc(args List) Object {
-	res := true
-	x := args.First().(Number)
-
-	for !args.Next().Nil() && res {
-		args = args.Next()
-		y := args.First().(Number)
-		res = x.Le(y)
+	for _, arg := range args[1:] {
+		y := arg.(Number)
+		if !x.Equals(y) {
+			return NewBool(false)
+		}
 		x = y
 	}
 
-	return NewBool(res)
+	return NewBool(true)
 }
 
-func LtFunc(args List) Object {
-	res := true
-	x := args.First().(Number)
+func Ne(args ...Object) Object {
+	return NewBool(!Eq(args...).(*Bool).Value)
+}
 
-	for !args.Next().Nil() && res {
-		args = args.Next()
-		y := args.First().(Number)
-		res = x.Lt(y)
+func Le(args ...Object) Object {
+	x := args[0].(Number)
+
+	for _, arg := range args[1:] {
+		y := arg.(Number)
+		if !x.Le(y) {
+			return NewBool(false)
+		}
 		x = y
 	}
 
-	return NewBool(res)
+	return NewBool(true)
+}
+
+func Lt(args ...Object) Object {
+	x := args[0].(Number)
+
+	for _, arg := range args[1:] {
+		y := arg.(Number)
+		if !x.Lt(y) {
+			return NewBool(false)
+		}
+		x = y
+	}
+
+	return NewBool(true)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Logic
 
-func NotFunc(args List) Object {
-	return NewBool(args.First().Equals(&falsecons))
+func Not(x Object) Object {
+	return NewBool(x.Equals(&falsecons))
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests
 
-func IsNilFunc(args List) Object {
-	return NewBool(args.First().Nil())
+func IsNil(x Object) Object {
+	return NewBool(x.Nil())
 }
 
-func IsZeroFunc(args List) Object {
-	return NewBool(args.First().(Number).Equals(NewInt(0)))
+func IsZero(x Object) Object {
+	return NewBool(x.(Number).Equals(NewInt(0)))
 }
 
-func IsPosFunc(args List) Object {
-	return NewBool(args.First().(Number).Gt(NewInt(0)))
+func IsPos(x Object) Object {
+	return NewBool(x.(Number).Gt(NewInt(0)))
 }
 
-func IsNegFunc(args List) Object {
-	return NewBool(args.First().(Number).Lt(NewInt(0)))
+func IsNeg(x Object) Object {
+	return NewBool(x.(Number).Lt(NewInt(0)))
 }
 
-func IsEvenFunc(args List) Object {
-	x := args.First().(*Int)
-	return NewBool(x.Value%2 == 0)
+func IsEven(x Object) Object {
+	return NewBool(x.(*Int).Value%2 == 0)
 }
 
-func IsOddFunc(args List) Object {
-	x := args.First().(*Int)
-	return NewBool(x.Value%2 != 0)
+func IsOdd(x Object) Object {
+	return NewBool(x.(*Int).Value%2 != 0)
 }
 
-func IsEmptyFunc(args List) Object {
-	l := args.First().(List)
-	return NewBool(l.First().Nil())
+func IsEmpty(ls Object) Object {
+	return NewBool(ls.(List).First().Nil())
 }
 
-func IsIntFunc(args List) Object {
-	_, ok := args.First().(*Int)
+func IsInt(x Object) Object {
+	_, ok := x.(*Int)
 	return NewBool(ok)
 }
 
-func IsDoubleFunc(args List) Object {
-	_, ok := args.First().(*Double)
+func IsDouble(x Object) Object {
+	_, ok := x.(*Double)
 	return NewBool(ok)
 }
 
-func IsBoolFunc(args List) Object {
-	_, ok := args.First().(*Bool)
+func IsBool(x Object) Object {
+	_, ok := x.(*Bool)
 	return NewBool(ok)
 }
 
-func IsStringFunc(args List) Object {
-	_, ok := args.First().(*String)
+func IsString(x Object) Object {
+	_, ok := x.(*String)
 	return NewBool(ok)
 }
 
-func IsListFunc(args List) Object {
-	_, ok := args.First().(*Cell)
+func IsList(x Object) Object {
+	_, ok := x.(*Cell)
 	return NewBool(ok)
 }
 
-func IsSymbolFunc(args List) Object {
-	_, ok := args.First().(*Symbol)
+func IsSymbol(x Object) Object {
+	_, ok := x.(*Symbol)
 	return NewBool(ok)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // List
 
-func FirstFunc(args List) Object {
-	return args.First().(List).First()
+func First(ls Object) Object {
+	return ls.(List).First()
 }
 
-func NextFunc(args List) Object {
-	return args.First().(List).Next()
+func Next(ls Object) Object {
+	return ls.(List).Next()
 }
 
-func ConsFunc(args List) Object {
-	x := args.First()
-	l := args.Second().(List)
-	l.Cons(x)
-	return l
+func Cons(x Object, ls Object) Object {
+	ls.(List).Cons(x)
+	return ls
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // IO
 
-func PrintFunc(args List) Object {
-	for !args.Nil() {
-		fmt.Print(args.First())
-		args = args.Next()
-		if !args.Nil() {
+func Print(args ...Object) Object {
+	l := len(args)
+	for i, arg := range args {
+		fmt.Print(arg)
+		if i < l-1 {
 			fmt.Print(" ")
 		}
 	}
 	return nil
 }
 
-func PrintlnFunc(args List) Object {
-	PrintFunc(args)
+func Println(args ...Object) Object {
+	Print(args...)
 	fmt.Println()
 	return nil
 }
 
-func NewlineFunc(args List) Object {
+func Newline() Object {
 	fmt.Println()
 	return nil
 }

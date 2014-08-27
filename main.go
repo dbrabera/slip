@@ -45,7 +45,7 @@ func repl() int {
 	env := NewEnviroment()
 
 	for name, fn := range CoreFuncs {
-		env.Define(NewSymbol(name), fn)
+		env.Define(NewSymbol(name), NewPrimFunc(fn))
 	}
 
 	for {

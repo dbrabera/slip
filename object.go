@@ -34,6 +34,8 @@ type List interface {
 	Nth(int) Object
 	Cons(Object) Object
 	IsEmpty() bool
+	Vector() []Object
+	Len() int
 }
 
 type Func interface {
@@ -503,28 +505,77 @@ func (self *Cell) IsEmpty() bool {
 	return self == nil || self.Value == nil
 }
 
+func (self *Cell) Vector() []Object {
+	curr := self
+	length := self.Len()
+	vec := make([]Object, length)
+
+	for i := 0; i < length; i++ {
+		vec[i] = curr.Value
+		curr = curr.More
+	}
+
+	return vec
+}
+
+func (self *Cell) Len() int {
+	i := 1
+	for curr := self; curr.More != nil; curr = curr.More {
+		i += 1
+	}
+	return i
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Primitive Function
 
-type PrimFunc func(List) Object
+type PrimFunc struct {
+	fn interface{}
+}
 
-func (self PrimFunc) Eval(env *Enviroment) Object {
+func NewPrimFunc(fn interface{}) *PrimFunc {
+	return &PrimFunc{fn: fn}
+}
+
+func (self *PrimFunc) Eval(env *Enviroment) Object {
 	return self
 }
 
-func (self PrimFunc) Apply(args List) Object {
-	return self(args)
+func (self *PrimFunc) Apply(args List) Object {
+	vargs := args.Vector()
+
+	switch fn := self.fn.(type) {
+	case func() Object:
+		if len(vargs) != 0 {
+			panic("Wrong number of arguments")
+		}
+		return fn()
+	case func(Object) Object:
+		if len(vargs) != 1 {
+			panic("Wrong number of arguments")
+		}
+		return fn(vargs[0])
+	case func(Object, Object) Object:
+		if len(vargs) != 2 {
+			panic("Wrong number of arguments")
+		}
+		return fn(vargs[0], vargs[1])
+	case func(...Object) Object:
+		return fn(vargs...)
+	}
+
+	panic("Invalid primary function")
 }
 
-func (self PrimFunc) String() string {
+func (self *PrimFunc) String() string {
 	return "<function>"
 }
 
-func (self PrimFunc) Nil() bool {
+func (self *PrimFunc) Nil() bool {
 	return self == nil
 }
 
-func (self PrimFunc) Equals(obj Object) bool {
+func (self *PrimFunc) Equals(obj Object) bool {
 	return false
 }
 
