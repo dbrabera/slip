@@ -33,6 +33,9 @@ func TestSlip(t *testing.T) {
 		{"(/ 4.0 2.0)", "2"},
 		{"(/ 4.0 2.0 4)", "0.5"},
 
+		{"(mod 5 2)", "1"},
+		{"(rem 5 2)", "1"},
+
 		{"(inc 1)", "2"},
 		{"(dec 1)", "0"},
 
@@ -95,17 +98,9 @@ func TestSlip(t *testing.T) {
 		{"(neg? 1)", "false"},
 		{"(neg? 1.0)", "false"},
 
-		{"(even? 2)", "true"},
-		{"(even? 1)", "false"},
-
-		{"(odd? 1)", "true"},
-		{"(odd? 2)", "false"},
-
-		{"(int? 1)", "true"},
-		{"(int? 1.0)", "false"},
-
-		{"(double? 1.0)", "true"},
-		{"(double? 1)", "false"},
+		{"(number? 1)", "true"},
+		{"(number? 1.0)", "true"},
+		{"(number? \"str\")", "false"},
 
 		{"(bool? true)", "true"},
 		{"(bool? 1)", "false"},

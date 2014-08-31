@@ -12,20 +12,6 @@ type Object interface {
 	Nil() bool
 }
 
-type Number interface {
-	Object
-	Add(Number) Number
-	Sub(Number) Number
-	Mul(Number) Number
-	Div(Number) Number
-	Gt(Number) bool
-	Ge(Number) bool
-	Le(Number) bool
-	Lt(Number) bool
-	Inc() Number
-	Dec() Number
-}
-
 type List interface {
 	Object
 	First() Object
@@ -44,205 +30,34 @@ type Func interface {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Integer
+// Number
 
-type Int struct {
-	Value int
-}
-
-func NewInt(value int) *Int {
-	return &Int{Value: value}
-}
-
-func (self *Int) Eval(env *Enviroment) Object {
-	return self
-}
-
-func (self *Int) String() string {
-	return strconv.Itoa(self.Value)
-}
-
-func (self *Int) Nil() bool {
-	return self == nil
-}
-
-func (self *Int) Equals(obj Object) bool {
-	if n, ok := obj.(*Double); ok {
-		return float64(self.Value) == n.Value
-	}
-
-	if n, ok := obj.(*Int); ok {
-		return self.Value == n.Value
-	}
-
-	return false
-}
-
-func (self *Int) Add(n Number) Number {
-	if n, ok := n.(*Double); ok {
-		return NewDouble(float64(self.Value) + n.Value)
-	}
-	return NewInt(self.Value + n.(*Int).Value)
-}
-
-func (self *Int) Sub(n Number) Number {
-	if n, ok := n.(*Double); ok {
-		return NewDouble(float64(self.Value) - n.Value)
-	}
-	return NewInt(self.Value - n.(*Int).Value)
-}
-
-func (self *Int) Mul(n Number) Number {
-	if n, ok := n.(*Double); ok {
-		return NewDouble(float64(self.Value) * n.Value)
-	}
-	return NewInt(self.Value * n.(*Int).Value)
-}
-
-func (self *Int) Div(n Number) Number {
-	if n, ok := n.(*Double); ok {
-		return NewDouble(float64(self.Value) / n.Value)
-	}
-	return NewInt(self.Value / n.(*Int).Value)
-}
-
-func (self *Int) Rem(div Number) Number {
-	return NewInt(self.Value % div.(*Int).Value)
-}
-
-func (self *Int) Gt(n Number) bool {
-	if n, ok := n.(*Double); ok {
-		return float64(self.Value) > n.Value
-	}
-	return self.Value > n.(*Int).Value
-}
-
-func (self *Int) Ge(n Number) bool {
-	if n, ok := n.(*Double); ok {
-		return float64(self.Value) >= n.Value
-	}
-	return self.Value >= n.(*Int).Value
-}
-
-func (self *Int) Le(n Number) bool {
-	if n, ok := n.(*Double); ok {
-		return float64(self.Value) <= n.Value
-	}
-	return self.Value <= n.(*Int).Value
-}
-
-func (self *Int) Lt(n Number) bool {
-	if n, ok := n.(*Double); ok {
-		return float64(self.Value) < n.Value
-	}
-	return self.Value < n.(*Int).Value
-}
-
-func (self *Int) Inc() Number {
-	return NewInt(self.Value + 1)
-}
-
-func (self *Int) Dec() Number {
-	return NewInt(self.Value - 1)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Double
-
-type Double struct {
+type Number struct {
 	Value float64
 }
 
-func NewDouble(value float64) *Double {
-	return &Double{Value: value}
+func NewNumber(value float64) *Number {
+	return &Number{Value: value}
 }
 
-func (self *Double) Eval(env *Enviroment) Object {
+func (self *Number) Eval(env *Enviroment) Object {
 	return self
 }
 
-func (self *Double) String() string {
+func (self *Number) String() string {
 	return strconv.FormatFloat(self.Value, 'f', -1, 64)
 }
 
-func (self *Double) Nil() bool {
+func (self *Number) Nil() bool {
 	return self == nil
 }
 
-func (self *Double) Equals(obj Object) bool {
-	if n, ok := obj.(*Double); ok {
+func (self *Number) Equals(obj Object) bool {
+	if n, ok := obj.(*Number); ok {
 		return self.Value == n.Value
 	}
 
-	if n, ok := obj.(*Int); ok {
-		return self.Value == float64(n.Value)
-	}
-
 	return false
-}
-
-func (self *Double) Add(n Number) Number {
-	if n, ok := n.(*Int); ok {
-		return NewDouble(self.Value + float64(n.Value))
-	}
-	return NewDouble(self.Value + n.(*Double).Value)
-}
-
-func (self *Double) Sub(n Number) Number {
-	if n, ok := n.(*Int); ok {
-		return NewDouble(self.Value - float64(n.Value))
-	}
-	return NewDouble(self.Value - n.(*Double).Value)
-}
-
-func (self *Double) Mul(n Number) Number {
-	if n, ok := n.(*Int); ok {
-		return NewDouble(self.Value * float64(n.Value))
-	}
-	return NewDouble(self.Value * n.(*Double).Value)
-}
-
-func (self *Double) Div(n Number) Number {
-	if n, ok := n.(*Int); ok {
-		return NewDouble(self.Value / float64(n.Value))
-	}
-	return NewDouble(self.Value / n.(*Double).Value)
-}
-
-func (self *Double) Gt(n Number) bool {
-	if n, ok := n.(*Int); ok {
-		return self.Value > float64(n.Value)
-	}
-	return self.Value > n.(*Double).Value
-}
-
-func (self *Double) Ge(n Number) bool {
-	if n, ok := n.(*Int); ok {
-		return self.Value >= float64(n.Value)
-	}
-	return self.Value >= n.(*Double).Value
-}
-
-func (self *Double) Le(n Number) bool {
-	if n, ok := n.(*Int); ok {
-		return self.Value <= float64(n.Value)
-	}
-	return self.Value <= n.(*Double).Value
-}
-
-func (self *Double) Lt(n Number) bool {
-	if n, ok := n.(*Int); ok {
-		return self.Value < float64(n.Value)
-	}
-	return self.Value < n.(*Double).Value
-}
-
-func (self *Double) Inc() Number {
-	return NewDouble(self.Value + 1.0)
-}
-
-func (self *Double) Dec() Number {
-	return NewDouble(self.Value - 1.0)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

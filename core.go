@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 var CoreFuncs = map[string]interface{}{
 	// Arithmetic
@@ -9,7 +12,7 @@ var CoreFuncs = map[string]interface{}{
 	"*":   Mul,
 	"/":   Div,
 	"rem": Rem,
-	//"mod": Mod,
+	"mod": Mod,
 	"inc": Inc,
 	"dec": Dec,
 
@@ -29,11 +32,8 @@ var CoreFuncs = map[string]interface{}{
 	"zero?":   IsZero,
 	"pos?":    IsPos,
 	"neg?":    IsNeg,
-	"even?":   IsEven,
-	"odd?":    IsOdd,
 	"empty?":  IsEmpty,
-	"int?":    IsInt,
-	"double?": IsDouble,
+	"number?": IsNumber,
 	"bool?":   IsBool,
 	"string?": IsString,
 	"list?":   IsList,
@@ -56,74 +56,78 @@ var CoreFuncs = map[string]interface{}{
 // Arithmetic
 
 func Add(args ...Object) Object {
-	res := args[0].(Number)
+	res := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		res = res.Add(arg.(Number))
+		res += arg.(*Number).Value
 	}
 
-	return res
+	return NewNumber(res)
 }
 
 func Sub(args ...Object) Object {
 	if len(args) == 1 {
-		return NewInt(0).Sub(args[0].(Number))
+		return NewNumber(-args[0].(*Number).Value)
 	}
 
-	res := args[0].(Number)
+	res := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		res = res.Sub(arg.(Number))
+		res -= arg.(*Number).Value
 	}
 
-	return res
+	return NewNumber(res)
 }
 
 func Mul(args ...Object) Object {
-	res := args[0].(Number)
+	res := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		res = res.Mul(arg.(Number))
+		res *= arg.(*Number).Value
 	}
 
-	return res
+	return NewNumber(res)
 }
 
 func Div(args ...Object) Object {
 	if len(args) == 1 {
-		return NewDouble(1.0).Div(args[0].(Number))
+		return NewNumber(1.0 / args[0].(*Number).Value)
 	}
 
-	res := args[0].(Number)
+	res := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		res = res.Div(arg.(Number))
+		res /= arg.(*Number).Value
 	}
 
-	return res
+	return NewNumber(res)
 }
 
 func Rem(num Object, div Object) Object {
-	return num.(*Int).Rem(div.(*Int))
+	return NewNumber(math.Remainder(num.(*Number).Value, div.(*Number).Value))
+}
+
+func Mod(num Object, div Object) Object {
+	return NewNumber(math.Mod(num.(*Number).Value, div.(*Number).Value))
 }
 
 func Inc(x Object) Object {
-	return x.(Number).Inc()
+	return NewNumber(x.(*Number).Value + 1.0)
 }
 
 func Dec(x Object) Object {
-	return x.(Number).Dec()
+	return NewNumber(x.(*Number).Value - 1.0)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Relational
 
 func Gt(args ...Object) Object {
-	x := args[0].(Number)
+	x := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		y := arg.(Number)
-		if !x.Gt(y) {
+		y := arg.(*Number).Value
+		if x <= y {
 			return NewBool(false)
 		}
 		x = y
@@ -133,11 +137,11 @@ func Gt(args ...Object) Object {
 }
 
 func Ge(args ...Object) Object {
-	x := args[0].(Number)
+	x := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		y := arg.(Number)
-		if !x.Ge(y) {
+		y := arg.(*Number).Value
+		if x < y {
 			return NewBool(false)
 		}
 		x = y
@@ -165,11 +169,11 @@ func Ne(args ...Object) Object {
 }
 
 func Le(args ...Object) Object {
-	x := args[0].(Number)
+	x := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		y := arg.(Number)
-		if !x.Le(y) {
+		y := arg.(*Number).Value
+		if x > y {
 			return NewBool(false)
 		}
 		x = y
@@ -179,11 +183,11 @@ func Le(args ...Object) Object {
 }
 
 func Lt(args ...Object) Object {
-	x := args[0].(Number)
+	x := args[0].(*Number).Value
 
 	for _, arg := range args[1:] {
-		y := arg.(Number)
-		if !x.Lt(y) {
+		y := arg.(*Number).Value
+		if x >= y {
 			return NewBool(false)
 		}
 		x = y
@@ -207,36 +211,23 @@ func IsNil(x Object) Object {
 }
 
 func IsZero(x Object) Object {
-	return NewBool(x.(Number).Equals(NewInt(0)))
+	return NewBool(x.(*Number).Value == 0.0)
 }
 
 func IsPos(x Object) Object {
-	return NewBool(x.(Number).Gt(NewInt(0)))
+	return NewBool(x.(*Number).Value > 0)
 }
 
 func IsNeg(x Object) Object {
-	return NewBool(x.(Number).Lt(NewInt(0)))
-}
-
-func IsEven(x Object) Object {
-	return NewBool(x.(*Int).Value%2 == 0)
-}
-
-func IsOdd(x Object) Object {
-	return NewBool(x.(*Int).Value%2 != 0)
+	return NewBool(x.(*Number).Value < 0)
 }
 
 func IsEmpty(ls Object) Object {
 	return NewBool(ls.(List).First().Nil())
 }
 
-func IsInt(x Object) Object {
-	_, ok := x.(*Int)
-	return NewBool(ok)
-}
-
-func IsDouble(x Object) Object {
-	_, ok := x.(*Double)
+func IsNumber(x Object) Object {
+	_, ok := x.(*Number)
 	return NewBool(ok)
 }
 

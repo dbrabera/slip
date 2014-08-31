@@ -108,13 +108,8 @@ func (self *Reader) readNumber() Object {
 		}
 	}
 
-	if point {
-		value, _ := strconv.ParseFloat(self.source[start:self.offset], 64)
-		return NewDouble(value)
-	} else {
-		value, _ := strconv.ParseInt(self.source[start:self.offset], 0, 0)
-		return NewInt(int(value))
-	}
+	value, _ := strconv.ParseFloat(self.source[start:self.offset], 64)
+	return NewNumber(value)
 }
 
 func (self *Reader) readIdent() Object {
