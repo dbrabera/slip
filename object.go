@@ -198,6 +198,16 @@ func (self *Cell) Eval(env *Enviroment) Object {
 	sym := self.Value.(*Symbol)
 
 	switch sym.Value {
+	case "and":
+		var last Object
+		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+			last = exprs.First().Eval(env)
+			if last == nil || last.Nil() || last == &falsecons {
+				return last
+			}
+		}
+		return last
+
 	case "quote":
 		return self.Nth(1)
 

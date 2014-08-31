@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestSlip(t *testing.T) {
 	cases := []struct {
@@ -11,6 +14,10 @@ func TestSlip(t *testing.T) {
 		{"'(1 2 3)", "(1 2 3)"},
 
 		{"(do 1 2 3 4)", "4"},
+
+		{"(and 1 true \"str\")", "\"str\""},
+		{"(and 1 false (1))", "false"},
+		{"(and 1 nil (1))", "nil"},
 
 		// Core functions
 
@@ -124,7 +131,7 @@ func TestSlip(t *testing.T) {
 
 	for _, c := range cases {
 		slip := NewSlip()
-		res := slip.Exec(c.Src).String()
+		res := fmt.Sprintf("%s", slip.Exec(c.Src))
 		if c.Res != res {
 			t.Errorf("\nInput: %s\nActual: %s\nExpected: %s", c.Src, res, c.Res)
 		}
