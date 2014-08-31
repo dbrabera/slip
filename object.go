@@ -208,12 +208,16 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		}
 		return last
 
-	case "quote":
-		return self.Nth(1)
-
 	case "def":
 		sym := self.Nth(1).(*Symbol)
 		env.Define(sym, self.Nth(2).Eval(env))
+		return nil
+
+	case "defn":
+		sym := self.Nth(1).(*Symbol)
+		fn := NewCompFunc(self.Nth(2).(List), self.Nth(3), env)
+		env.Define(sym, fn)
+
 		return nil
 
 	case "do":
@@ -222,6 +226,9 @@ func (self *Cell) Eval(env *Enviroment) Object {
 			last = exprs.First().Eval(env)
 		}
 		return last
+
+	case "fn":
+		return NewCompFunc(self.Nth(1).(List), self.Nth(2), env)
 
 	case "if":
 		test := self.Nth(1).Eval(env)
@@ -234,15 +241,18 @@ func (self *Cell) Eval(env *Enviroment) Object {
 
 		return nil
 
-	case "fn":
-		return NewCompFunc(self.Nth(1).(List), self.Nth(2), env)
+	case "or":
+		var last Object
+		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+			last = exprs.First().Eval(env)
+			if last != nil && !last.Nil() && last != &falsecons {
+				return last
+			}
+		}
+		return last
 
-	case "defn":
-		sym := self.Nth(1).(*Symbol)
-		fn := NewCompFunc(self.Nth(2).(List), self.Nth(3), env)
-		env.Define(sym, fn)
-
-		return nil
+	case "quote":
+		return self.Nth(1)
 
 	default:
 		proc := env.Resolve(sym).(Func)

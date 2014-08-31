@@ -10,14 +10,19 @@ func TestSlip(t *testing.T) {
 		Src, Res string
 	}{
 		// Special forms
-		{"(quote (1 2 3))", "(1 2 3)"},
-		{"'(1 2 3)", "(1 2 3)"},
+		{"(and true \"str\")", "\"str\""},
+		{"(and false (1))", "false"},
+		{"(and nil (1))", "nil"},
 
 		{"(do 1 2 3 4)", "4"},
 
-		{"(and 1 true \"str\")", "\"str\""},
-		{"(and 1 false (1))", "false"},
-		{"(and 1 nil (1))", "nil"},
+		{"(or true (1))", "true"},
+		{"(or 1 (1))", "1"},
+		{"(or false \"str\")", "\"str\""},
+		{"(or nil \"str\")", "\"str\""},
+
+		{"(quote (1 2 3))", "(1 2 3)"},
+		{"'(1 2 3)", "(1 2 3)"},
 
 		// Core functions
 
