@@ -191,109 +191,106 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		return self
 	}
 
-	sym := self.Value.(*Symbol)
-
-	switch sym.Value {
-	case "and":
-		var last Object
-		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
-			last = exprs.First().Eval(env)
-			if last == nil || last.Nil() || last == &falsecons {
-				return last
+	if sym, ok := self.Value.(*Symbol); ok {
+		switch sym.Value {
+		case "and":
+			var last Object
+			for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+				last = exprs.First().Eval(env)
+				if last == nil || last.Nil() || last == &falsecons {
+					return last
+				}
 			}
-		}
-		return last
+			return last
 
-	case "def":
-		sym := self.Nth(1).(*Symbol)
-		env.Define(sym, self.Nth(2).Eval(env))
-		return nil
+		case "def":
+			sym := self.Nth(1).(*Symbol)
+			env.Define(sym, self.Nth(2).Eval(env))
+			return nil
 
-	case "defn":
-		sym := self.Nth(1).(*Symbol)
-		params := self.Nth(2).(List)
-		exprs := self.Next().Next().Next()
-		fn := NewCompFunc(params, exprs, env)
-		env.Define(sym, fn)
+		case "defn":
+			sym := self.Nth(1).(*Symbol)
+			params := self.Nth(2).(List)
+			exprs := self.Next().Next().Next()
+			fn := NewCompFunc(params, exprs, env)
+			env.Define(sym, fn)
 
-		return nil
+			return nil
 
-	case "do":
-		var last Object
-		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
-			last = exprs.First().Eval(env)
-		}
-		return last
-
-	case "fn":
-		params := self.Nth(1).(List)
-		exprs := self.Next().Next()
-		return NewCompFunc(params, exprs, env)
-
-	case "if":
-		test := self.Nth(1).Eval(env)
-
-		if b, ok := test.(*Bool); test != nil && (!ok || b.Value) {
-			return self.Nth(2).Eval(env)
-		} else if self.Nth(3) != nil {
-			return self.Nth(3).Eval(env)
-		}
-
-		return nil
-
-	case "let":
-		exprs := self.Next().Next()
-		params := NewCell(nil, nil)
-		paramsCurr := params
-		args := NewCell(nil, nil)
-		argsCurr := args
-
-		for bindings := self.Second().(List); !bindings.IsEmpty(); bindings = bindings.Next() {
-			binding := bindings.First().(List)
-
-			paramsCurr.Value = binding.First()
-			paramsCurr.More = NewCell(nil, nil)
-			paramsCurr = paramsCurr.More
-
-			argsCurr.Value = binding.Second().Eval(env)
-			argsCurr.More = NewCell(nil, nil)
-			argsCurr = argsCurr.More
-		}
-
-		return NewCompFunc(params, exprs, env).Apply(args)
-
-	case "or":
-		var last Object
-		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
-			last = exprs.First().Eval(env)
-			if last != nil && !last.Nil() && last != &falsecons {
-				return last
+		case "do":
+			var last Object
+			for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+				last = exprs.First().Eval(env)
 			}
-		}
-		return last
+			return last
 
-	case "quote":
-		return self.Nth(1)
+		case "fn":
+			params := self.Nth(1).(List)
+			exprs := self.Next().Next()
+			return NewCompFunc(params, exprs, env)
 
-	default:
-		proc := env.Resolve(sym).(Func)
-		args := self.Next()
-		var curr *Cell
-		var front *Cell
+		case "if":
+			test := self.Nth(1).Eval(env)
 
-		for !args.Nil() {
-			if curr == nil {
-				curr = NewCell(args.First().Eval(env), nil)
-				front = curr
-			} else {
-				curr.More = NewCell(args.First().Eval(env), nil)
-				curr = curr.More
+			if b, ok := test.(*Bool); test != nil && (!ok || b.Value) {
+				return self.Nth(2).Eval(env)
+			} else if self.Nth(3) != nil {
+				return self.Nth(3).Eval(env)
 			}
-			args = args.Next()
-		}
 
-		return proc.Apply(front)
+			return nil
+
+		case "let":
+			exprs := self.Next().Next()
+			params := NewCell(nil, nil)
+			paramsCurr := params
+			args := NewCell(nil, nil)
+			argsCurr := args
+
+			for bindings := self.Second().(List); !bindings.IsEmpty(); bindings = bindings.Next() {
+				binding := bindings.First().(List)
+
+				paramsCurr.Value = binding.First()
+				paramsCurr.More = NewCell(nil, nil)
+				paramsCurr = paramsCurr.More
+
+				argsCurr.Value = binding.Second().Eval(env)
+				argsCurr.More = NewCell(nil, nil)
+				argsCurr = argsCurr.More
+			}
+
+			return NewCompFunc(params, exprs, env).Apply(args)
+
+		case "or":
+			var last Object
+			for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+				last = exprs.First().Eval(env)
+				if last != nil && !last.Nil() && last != &falsecons {
+					return last
+				}
+			}
+			return last
+
+		case "quote":
+			return self.Nth(1)
+		}
 	}
+
+	fn := self.Value.Eval(env).(Func)
+	var curr *Cell
+	var front *Cell
+
+	for args := self.Next(); !args.Nil(); args = args.Next() {
+		if curr == nil {
+			curr = NewCell(args.First().Eval(env), nil)
+			front = curr
+		} else {
+			curr.More = NewCell(args.First().Eval(env), nil)
+			curr = curr.More
+		}
+	}
+
+	return fn.Apply(front)
 }
 
 func (self *Cell) String() string {
