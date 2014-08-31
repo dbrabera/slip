@@ -206,6 +206,13 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		env.Define(sym, self.Nth(2).Eval(env))
 		return nil
 
+	case "do":
+		var last Object
+		for exprs := self.Next(); !exprs.Nil(); exprs = exprs.Next() {
+			last = exprs.First().Eval(env)
+		}
+		return last
+
 	case "if":
 		test := self.Nth(1).Eval(env)
 

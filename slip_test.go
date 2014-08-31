@@ -10,6 +10,8 @@ func TestSlip(t *testing.T) {
 		{"(quote (1 2 3))", "(1 2 3)"},
 		{"'(1 2 3)", "(1 2 3)"},
 
+		{"(do 1 2 3 4)", "4"},
+
 		// Core functions
 
 		// Arithmetic
