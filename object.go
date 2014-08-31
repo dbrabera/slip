@@ -18,7 +18,7 @@ type List interface {
 	Second() Object
 	Next() List
 	Nth(int) Object
-	Cons(Object) Object
+	Cons(Object) List
 	IsEmpty() bool
 	Vector() []Object
 	Len() int
@@ -174,20 +174,16 @@ func NewCell(first Object, more *Cell) *Cell {
 }
 
 func NewList(objs ...Object) *Cell {
-	var first *Cell = nil
-	var curr *Cell = nil
+	var front *Cell = NewCell(nil, nil)
+	var curr *Cell = front
 
 	for _, obj := range objs {
-		if first == nil {
-			first = NewCell(obj, nil)
-			curr = first
-		} else {
-			curr.More = NewCell(obj, nil)
-			curr = curr.More
-		}
+		curr.Value = obj
+		curr.More = NewCell(nil, nil)
+		curr = curr.More
 	}
 
-	return first
+	return front
 }
 
 func (self *Cell) Eval(env *Enviroment) Object {
@@ -215,7 +211,9 @@ func (self *Cell) Eval(env *Enviroment) Object {
 
 	case "defn":
 		sym := self.Nth(1).(*Symbol)
-		fn := NewCompFunc(self.Nth(2).(List), self.Nth(3), env)
+		params := self.Nth(2).(List)
+		exprs := self.Next().Next().Next()
+		fn := NewCompFunc(params, exprs, env)
 		env.Define(sym, fn)
 
 		return nil
@@ -228,7 +226,9 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		return last
 
 	case "fn":
-		return NewCompFunc(self.Nth(1).(List), self.Nth(2), env)
+		params := self.Nth(1).(List)
+		exprs := self.Next().Next()
+		return NewCompFunc(params, exprs, env)
 
 	case "if":
 		test := self.Nth(1).Eval(env)
@@ -240,6 +240,27 @@ func (self *Cell) Eval(env *Enviroment) Object {
 		}
 
 		return nil
+
+	case "let":
+		exprs := self.Next().Next()
+		params := NewCell(nil, nil)
+		paramsCurr := params
+		args := NewCell(nil, nil)
+		argsCurr := args
+
+		for bindings := self.Second().(List); !bindings.IsEmpty(); bindings = bindings.Next() {
+			binding := bindings.First().(List)
+
+			paramsCurr.Value = binding.First()
+			paramsCurr.More = NewCell(nil, nil)
+			paramsCurr = paramsCurr.More
+
+			argsCurr.Value = binding.Second().Eval(env)
+			argsCurr.More = NewCell(nil, nil)
+			argsCurr = argsCurr.More
+		}
+
+		return NewCompFunc(params, exprs, env).Apply(args)
 
 	case "or":
 		var last Object
@@ -339,7 +360,7 @@ func (self *Cell) Nth(n int) Object {
 	return nil
 }
 
-func (self *Cell) Cons(obj Object) Object {
+func (self *Cell) Cons(obj Object) List {
 	return NewCell(obj, self)
 }
 
@@ -430,12 +451,12 @@ func (self *PrimFunc) Equals(obj Object) bool {
 
 type CompFunc struct {
 	params List
-	body   Object
+	exprs  List
 	env    *Enviroment
 }
 
-func NewCompFunc(params List, body Object, env *Enviroment) *CompFunc {
-	return &CompFunc{params: params, body: body, env: env}
+func NewCompFunc(params List, exprs List, env *Enviroment) *CompFunc {
+	return &CompFunc{params: params, exprs: exprs.Cons(NewSymbol("do")), env: env}
 }
 
 func (self *CompFunc) Eval(env *Enviroment) Object {
@@ -454,7 +475,7 @@ func (self *CompFunc) Apply(args List) Object {
 		args = args.Next()
 	}
 
-	return self.body.Eval(env)
+	return self.exprs.Eval(env)
 }
 
 func (self *CompFunc) String() string {

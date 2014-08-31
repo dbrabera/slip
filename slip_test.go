@@ -16,6 +16,8 @@ func TestSlip(t *testing.T) {
 
 		{"(do 1 2 3 4)", "4"},
 
+		{"(let ((x 1) (y (+ 2 2))) (+ x y))", "5"},
+
 		{"(or true (1))", "true"},
 		{"(or 1 (1))", "1"},
 		{"(or false \"str\")", "\"str\""},
