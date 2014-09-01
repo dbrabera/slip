@@ -10,46 +10,51 @@ func TestSlip(t *testing.T) {
 		Src, Res string
 	}{
 		// Special forms
-		{"(and true \"str\")", "\"str\""},
-		{"(and false (1))", "false"},
-		{"(and nil (1))", "nil"},
+		{"(and true)", "true"},
+		{"(and true \"hello\")", "\"hello\""},
+		{"(and false \"hello\")", "false"},
+		{"(and true \"hello\" nil)", "nil"},
 
-		{"(do 1 2 3 4)", "4"},
+		{"(do (def a \"hello\") a)", "\"hello\""},
+
+		{"(do (defn sum (x y) (+ x y)) (sum 1 2))", "3"},
+
+		{"(do \"hello\" \"world\")", "\"world\""},
 
 		{"((fn (x y) (+ x y)) 1 2)", "3"},
 
+		{"(if true \"hello\")", "\"hello\""},
+		{"(if false \"hello\")", "nil"},
+		{"(if false \"hello\" \"world\")", "\"world\""},
+
 		{"(let ((x 1) (y 2)) (+ x y))", "3"},
 
-		{"(or true (1))", "true"},
-		{"(or 1 (1))", "1"},
-		{"(or false \"str\")", "\"str\""},
-		{"(or nil \"str\")", "\"str\""},
+		{"(or true)", "true"},
+		{"(or true \"hello\")", "true"},
+		{"(or false \"hello\")", "\"hello\""},
+		{"(or false false nil)", "nil"},
 
-		{"(quote (1 2 3))", "(1 2 3)"},
-		{"'(1 2 3)", "(1 2 3)"},
+		{"(quote (+ 1 2))", "(+ 1 2)"},
+		{"'(+ 1 2)", "(+ 1 2)"},
 
 		// Core functions
 
 		// Arithmetic
 		{"(+ 1)", "1"},
-		{"(+ 1 2)", "3"},
-		{"(+ 1.1 2.0)", "3.1"},
-		{"(+ 1.1 1 2)", "4.1"},
+		{"(+ 1 2.2)", "3.2"},
+		{"(+ 1 2.2 3)", "6.2"},
 
 		{"(- 1)", "-1"},
-		{"(- 1 1)", "0"},
-		{"(- 1.1 1.0)", "0.1"},
-		{"(- 1.1 1 1)", "-0.9"},
+		{"(- 1 2.2)", "-1.2"},
+		{"(- 1 2.2 3)", "-4.2"},
 
-		{"(* 2)", "2"},
-		{"(* 2 2)", "4"},
-		{"(* 2.5 2.5)", "6.25"},
-		{"(* 2 2.5 3)", "15"},
+		{"(* 4)", "4"},
+		{"(* 4 2.0)", "8"},
+		{"(* 4 2.0 4)", "32"},
 
-		{"(/ 2)", "0.5"},
-		{"(/ 4 2)", "2"},
-		{"(/ 4.0 2.0)", "2"},
-		{"(/ 4.0 2.0 4)", "0.5"},
+		{"(/ 4)", "0.25"},
+		{"(/ 4 2.0)", "2"},
+		{"(/ 4 2.0 4)", "0.5"},
 
 		{"(mod 5 2)", "1"},
 		{"(rem 5 2)", "1"},
@@ -78,12 +83,8 @@ func TestSlip(t *testing.T) {
 		{"(< 1 2.0 3)", "true"},
 		{"(< 1 3 2.0)", "false"},
 
-		{"(= 1 1)", "true"},
-		{"(= 1 2)", "false"},
-		{"(= 1.0 1.0)", "true"},
-		{"(= 1.0 2.0)", "false"},
+		{"(= 1)", "true"},
 		{"(= 1 1.0)", "true"},
-		{"(= 1 2.0)", "false"},
 		{"(= true true)", "true"},
 		{"(= true false)", "false"},
 		{"(= \"abc\" \"abc\")", "true"},
@@ -92,32 +93,26 @@ func TestSlip(t *testing.T) {
 		{"(= '(1 1.0 true \"abc\") '(1 1.0 false \"abc\"))", "false"},
 		{"(= 1 1 1 1)", "true"},
 
-		{"(!= true false)", "true"},
-		{"(!= true true)", "false"},
+		{"(!= 1 2)", "true"},
+		{"(!= 1 1)", "false"},
 
 		// Logic
 		{"(not false)", "true"},
 		{"(not true)", "false"},
-		{"(not 1)", "false"},
+		{"(not nil)", "true"},
+		{"(not \"str\")", "false"},
 
 		// Test
 		{"(zero? 0)", "true"},
-		{"(zero? 0.0)", "true"},
 		{"(zero? 1)", "false"},
-		{"(zero? 1.0)", "false"},
 
 		{"(pos? 1)", "true"},
-		{"(pos? 1.0)", "true"},
 		{"(pos? -1)", "false"},
-		{"(pos? -1.0)", "false"},
 
 		{"(neg? -1)", "true"},
-		{"(neg? -1.0)", "true"},
 		{"(neg? 1)", "false"},
-		{"(neg? 1.0)", "false"},
 
 		{"(number? 1)", "true"},
-		{"(number? 1.0)", "true"},
 		{"(number? \"str\")", "false"},
 
 		{"(bool? true)", "true"},
@@ -133,9 +128,19 @@ func TestSlip(t *testing.T) {
 		{"(list? 1)", "false"},
 
 		// List
-		{"(first '(1 2 3))", "1"},
-		{"(next '(1 2 3))", "(2 3)"},
 		{"(cons 1 '(2 3))", "(1 2 3)"},
+
+		{"(empty? '(1 2 3))", "false"},
+		{"(empty? '())", "true"},
+
+		{"(next '(1 2 3))", "(2 3)"},
+		{"(next '(1))", "nil"},
+		{"(next '())", "nil"},
+		{"(next nil)", "nil"},
+
+		{"(first '(1 2 3))", "1"},
+		{"(first '())", "nil"},
+		{"(first nil)", "nil"},
 	}
 
 	for _, c := range cases {
