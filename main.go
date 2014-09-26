@@ -8,6 +8,8 @@ import (
 
 const Version = "0.0.1"
 
+var GitCommit string
+
 type Options struct {
 	Help    bool
 	Version bool
@@ -65,7 +67,7 @@ func main() {
 }
 
 func version() int {
-	fmt.Printf("Slip %s\n", Version)
+	fmt.Printf("Slip %s (%s)\n", Version, GitCommit)
 	return 0
 }
 

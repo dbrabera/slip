@@ -1,7 +1,9 @@
+GIT_COMMIT=$(shell git rev-parse HEAD)
+
 default: test
 
 build: deps
-	go build ./...
+	go build -ldflags "-X main.GitCommit $(GIT_COMMIT)" ./...
 
 deps:
 	go get -d -v ./...
