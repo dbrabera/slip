@@ -1,0 +1,13 @@
+{
+	"ImportPath": "_/home/dbarbera/dev/fun/slip",
+	"GoVersion": "go1.2.1",
+	"Packages": [
+		"github.com/dbrabera/slip"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/peterh/liner",
+			"Rev": "c0c66ddb5b2843eef8e7ae379194e59b118b796e"
+		}
+	]
+}
