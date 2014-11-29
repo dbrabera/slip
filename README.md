@@ -16,9 +16,9 @@ It's ALIVE!
 
 ## Documentation
 
-  [Special forms](https://github.com/dbrabera/slip/docs/forms.md)
+  [Special forms](https://github.com/dbrabera/slip/blob/master/docs/forms.md)
 
-  [Core library](https://github.com/dbrabera/slip/docs/core.md)
+  [Core library](https://github.com/dbrabera/slip/blob/master/docs/core.md)
 
 ## License
 
