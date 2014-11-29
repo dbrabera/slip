@@ -1,20 +1,17 @@
 GIT_COMMIT=$(shell git rev-parse HEAD)
+LDFLAGS=-ldflags "-X main.GitCommit $(GIT_COMMIT)"
 
 default: test
 
-build: deps
-	go build -ldflags "-X main.GitCommit $(GIT_COMMIT)" ./...
+build:
+	@mkdir -p $(GOPATH)/src/github.com/dbrabera
+	@ln -sf $(shell pwd) $(GOPATH)/src/github.com/dbrabera
+	@go build $(LDFLAGS) -o bin/slip slip/main.go
 
-deps:
-	go get -d -v ./...
-
-run: build
-	./slip
-
-test: deps
-	go test ./...
+test:
+	@go test ./...
 
 clean:
-	rm -f slip
+	@rm -f slip
 
-.PHONY: default build deps run test clean
+.PHONY: default deps run test clean

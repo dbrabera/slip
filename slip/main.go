@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/dbrabera/slip"
 )
 
 const Version = "0.0.1"
@@ -57,12 +59,12 @@ func main() {
 		os.Exit(version())
 	}
 
-	slip := NewSlip()
+	sl := slip.NewSlip()
 
 	if options.Script != "" {
-		os.Exit(slip.Run(options.Script))
+		os.Exit(sl.Run(options.Script))
 	} else {
-		os.Exit(slip.Repl())
+		os.Exit(sl.Repl())
 	}
 }
 
