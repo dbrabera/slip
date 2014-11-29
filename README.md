@@ -1,5 +1,7 @@
 # Slip
 
+[![Build Status](https://travis-ci.org/dbrabera/slip.svg?branch=master)](https://travis-ci.org/dbrabera/slip)
+
 The Slip programming language
 
 ## Usage
