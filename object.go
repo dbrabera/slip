@@ -174,16 +174,19 @@ func NewCell(first Object, more *Cell) *Cell {
 }
 
 func NewList(objs ...Object) *Cell {
-	var front *Cell = NewCell(nil, nil)
-	var curr *Cell = front
+	if len(objs) == 0 {
+		return NewCell(nil, nil)
+	}
 
-	for _, obj := range objs {
-		curr.Value = obj
-		curr.More = NewCell(nil, nil)
+	head := NewCell(objs[0], nil)
+	curr := head
+
+	for _, obj := range objs[1:] {
+		curr.More = NewCell(obj, nil)
 		curr = curr.More
 	}
 
-	return front
+	return head
 }
 
 func (self *Cell) Eval(env *Enviroment) Object {
@@ -294,6 +297,10 @@ func (self *Cell) Eval(env *Enviroment) Object {
 }
 
 func (self *Cell) String() string {
+	if self == nil {
+		return fmt.Sprint(nil)
+	}
+
 	if self.IsEmpty() {
 		return "()"
 	}
