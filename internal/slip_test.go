@@ -1,11 +1,11 @@
-package slip
+package internal
 
 import (
 	"fmt"
 	"testing"
 )
 
-func TestSlip(t *testing.T) {
+func TestSlip_Exec(t *testing.T) {
 	cases := []struct {
 		Src, Res string
 	}{
