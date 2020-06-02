@@ -1,6 +1,10 @@
 language: go
 
-go:
-  - tip
+go_import_path: github.com/dbrabera/slip
 
-script: make test
+go:
+  - "1.14"
+
+script:
+  - make build
+  - make test

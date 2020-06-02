@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/dbrabera/slip/Godeps/_workspace/src/github.com/peterh/liner"
+	"github.com/peterh/liner"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
