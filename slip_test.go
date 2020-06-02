@@ -13,7 +13,7 @@ func TestSlip(t *testing.T) {
 		{"(and true)", "true"},
 		{"(and true \"hello\")", "\"hello\""},
 		{"(and false \"hello\")", "false"},
-		{"(and true \"hello\" nil)", "nil"},
+		{"(and true \"hello\" nil)", "<nil>"},
 
 		{"(do (def a \"hello\") a)", "\"hello\""},
 
@@ -24,7 +24,7 @@ func TestSlip(t *testing.T) {
 		{"((fn (x y) (+ x y)) 1 2)", "3"},
 
 		{"(if true \"hello\")", "\"hello\""},
-		{"(if false \"hello\")", "nil"},
+		{"(if false \"hello\")", "<nil>"},
 		{"(if false \"hello\" \"world\")", "\"world\""},
 
 		{"(let ((x 1) (y 2)) (+ x y))", "3"},
@@ -32,7 +32,7 @@ func TestSlip(t *testing.T) {
 		{"(or true)", "true"},
 		{"(or true \"hello\")", "true"},
 		{"(or false \"hello\")", "\"hello\""},
-		{"(or false false nil)", "nil"},
+		{"(or false false nil)", "<nil>"},
 
 		{"(quote (+ 1 2))", "(+ 1 2)"},
 		{"'(+ 1 2)", "(+ 1 2)"},
@@ -45,8 +45,8 @@ func TestSlip(t *testing.T) {
 		{"(+ 1 2.2 3)", "6.2"},
 
 		{"(- 1)", "-1"},
-		{"(- 1 2.2)", "-1.2"},
-		{"(- 1 2.2 3)", "-4.2"},
+		{"(- 1 1.123)", "-0.123"},
+		{"(- 1 1.123 3)", "-3.123"},
 
 		{"(* 4)", "4"},
 		{"(* 4 2.0)", "8"},
@@ -134,18 +134,18 @@ func TestSlip(t *testing.T) {
 		{"(empty? '())", "true"},
 
 		{"(next '(1 2 3))", "(2 3)"},
-		{"(next '(1))", "nil"},
-		{"(next '())", "nil"},
-		{"(next nil)", "nil"},
+		{"(next '(1))", "<nil>"},
+		{"(next '())", "<nil>"},
+		{"(next nil)", "<nil>"},
 
 		{"(first '(1 2 3))", "1"},
-		{"(first '())", "nil"},
-		{"(first nil)", "nil"},
+		{"(first '())", "<nil>"},
+		{"(first nil)", "<nil>"},
 	}
 
 	for _, c := range cases {
 		slip := NewSlip()
-		res := fmt.Sprintf("%s", slip.Exec(c.Src))
+		res := fmt.Sprint(slip.Exec(c.Src))
 		if c.Res != res {
 			t.Errorf("\nInput: %s\nActual: %s\nExpected: %s", c.Src, res, c.Res)
 		}
