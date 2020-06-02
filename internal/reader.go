@@ -1,4 +1,4 @@
-package slip
+package internal
 
 import (
 	"strconv"

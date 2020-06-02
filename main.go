@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dbrabera/slip"
+	"github.com/dbrabera/slip/internal"
 )
 
 const Version = "0.0.1"
@@ -59,7 +59,7 @@ func main() {
 		os.Exit(version())
 	}
 
-	sl := slip.NewSlip()
+	sl := internal.NewSlip()
 
 	if options.Script != "" {
 		os.Exit(sl.Run(options.Script))
