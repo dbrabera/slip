@@ -52,9 +52,6 @@ var CoreFuncs = map[string]interface{}{
 	//"readline": Readline,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Arithmetic
-
 func Add(nums ...Object) Object {
 	res := nums[0].(*Number).Value
 
@@ -118,9 +115,6 @@ func Inc(num Object) Object {
 func Dec(num Object) Object {
 	return NewNumber(num.(*Number).Value - 1.0)
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Relational
 
 func Gt(nums ...Object) Object {
 	x := nums[0].(*Number).Value
@@ -194,18 +188,12 @@ func Lt(nums ...Object) Object {
 	return NewBool(true)
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Logic
-
 func Not(x Object) Object {
 	if x == nil {
 		return NewBool(true)
 	}
 	return NewBool(x.Equals(&falsecons))
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Tests
 
 func IsNil(x Object) Object {
 	return NewBool(x.Nil())
@@ -248,9 +236,6 @@ func IsSymbol(x Object) Object {
 	return NewBool(ok)
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// List
-
 func Cons(x Object, ls Object) Object {
 	return ls.(List).Cons(x)
 }
@@ -275,9 +260,6 @@ func Next(ls Object) Object {
 	}
 	return ls.(List).Next()
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// IO
 
 func Print(objs ...Object) Object {
 	l := len(objs)

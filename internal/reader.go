@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/pkg/errors"
 )
 
 const eof = -1
@@ -18,114 +20,117 @@ func NewReader() *Reader {
 	return &Reader{}
 }
 
-func (self *Reader) Init(source string) {
-	self.source = source
-	self.line = 1
-	self.offset = 0
+func (r *Reader) Init(source string) {
+	r.source = source
+	r.line = 1
+	r.offset = 0
 }
 
-func (self *Reader) Read() Object {
-	self.ignoreWhitespace()
+func (r *Reader) Read() Object {
+	r.ignoreWhitespace()
 
-	switch r := self.next(); {
-	case r == eof:
+	switch ch := r.next(); {
+	case ch == eof:
 		return nil
-	case unicode.IsDigit(r):
-		self.undo()
-		return self.readNumber()
-	case r == '+' || r == '-':
-		if unicode.IsDigit(self.peek()) {
-			self.undo()
-			return self.readNumber()
+	case unicode.IsDigit(ch):
+		r.undo()
+		return r.readNumber()
+	case ch == '+' || ch == '-':
+		if unicode.IsDigit(r.peek()) {
+			r.undo()
+			return r.readNumber()
 		}
 		fallthrough
-	case isIdentHead(r):
-		self.undo()
-		return self.readIdent()
-	case r == '(':
-		self.undo()
-		return self.readList()
-	case r == '\'':
-		return NewList(NewSymbol("quote"), self.Read())
-	case r == '"':
-		self.undo()
-		return self.readString()
+	case isIdentHead(ch):
+		r.undo()
+		return r.readIdent()
+	case ch == '(':
+		r.undo()
+		return r.readList()
+	case ch == '\'':
+		return NewList(NewSymbol("quote"), r.Read())
+	case ch == '"':
+		r.undo()
+		return r.readString()
 	default:
-		panic("Unexpected character")
+		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 }
 
-func (self *Reader) next() rune {
-	var r rune
-	if self.offset < len(self.source) {
-		r = rune(self.source[self.offset])
+func (r *Reader) next() rune {
+	var ch rune
+	if r.offset < len(r.source) {
+		ch = rune(r.source[r.offset])
 	} else {
-		r = eof
+		ch = eof
 	}
-	self.offset += 1
+	r.offset++
 
-	return r
+	return ch
 }
 
-func (self *Reader) undo() {
-	self.offset -= 1
+func (r *Reader) undo() {
+	r.offset--
 }
 
-func (self *Reader) peek() rune {
-	r := self.next()
-	self.undo()
-	return r
+func (r *Reader) peek() rune {
+	ch := r.next()
+	r.undo()
+	return ch
 }
 
-func (self *Reader) ignoreWhitespace() {
+func (r *Reader) ignoreWhitespace() {
 	for {
-		r := self.next()
-		if !unicode.IsSpace(r) {
-			self.undo()
+		ch := r.next()
+		if !unicode.IsSpace(ch) {
+			r.undo()
 			break
 		}
 	}
 }
 
-func (self *Reader) readNumber() Object {
-	start := self.offset
+func (r *Reader) readNumber() Object {
+	start := r.offset
 	point := false
 
-	if r := self.next(); r != '+' && r != '-' && !unicode.IsDigit(r) {
-		panic("Unexpected character")
+	if ch := r.next(); ch != '+' && ch != '-' && !unicode.IsDigit(ch) {
+		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 
 	for {
-		r := self.next()
-		if !point && r == '.' {
+		ch := r.next()
+		if !point && ch == '.' {
 			point = true
 			continue
 		}
 
-		if !unicode.IsDigit(r) {
-			self.undo()
+		if !unicode.IsDigit(ch) {
+			r.undo()
 			break
 		}
 	}
 
-	value, _ := strconv.ParseFloat(self.source[start:self.offset], 64)
+	value, err := strconv.ParseFloat(r.source[start:r.offset], 64)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to parse float"))
+	}
 	return NewNumber(value)
 }
 
-func (self *Reader) readIdent() Object {
-	start := self.offset
-	if !isIdentHead(self.next()) {
-		panic("Unexpected character")
+func (r *Reader) readIdent() Object {
+	start := r.offset
+	if ch := r.next(); !isIdentHead(ch) {
+		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 
 	for {
-		if !isIdentBody(self.next()) {
-			self.undo()
+		if !isIdentBody(r.next()) {
+			r.undo()
 			break
 		}
 	}
 
-	switch lexeme := self.source[start:self.offset]; lexeme {
+	switch lexeme := r.source[start:r.offset]; lexeme {
 	case "true":
 		return NewBool(true)
 	case "false":
@@ -143,46 +148,46 @@ func isIdentBody(r rune) bool {
 	return isIdentHead(r) || unicode.IsDigit(r)
 }
 
-func (self *Reader) readString() Object {
-	if self.next() != '"' {
-		panic("Unexpected character")
+func (r *Reader) readString() Object {
+	if ch := r.next(); ch != '"' {
+		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 
-	start := self.offset
+	start := r.offset
 	for {
-		switch self.next() {
+		switch ch := r.next(); ch {
 		case '"':
-			return NewString(self.source[start : self.offset-1])
+			return NewString(r.source[start : r.offset-1])
 		case '\n', eof:
-			panic("Unexpected character")
+			panic(errors.Errorf("unexpected character '%c'", ch))
 		default:
 			continue
 		}
 	}
 }
 
-func (self *Reader) readList() Object {
-	if r := self.next(); r != '(' {
-		panic("Unexpected character")
+func (r *Reader) readList() Object {
+	if ch := r.next(); ch != '(' {
+		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 
 	var front *Cell = &Cell{}
 	var curr *Cell = nil
 
 	for {
-		self.ignoreWhitespace()
+		r.ignoreWhitespace()
 
-		r := self.next()
+		ch := r.next()
 
-		if r == eof {
-			panic("EOF while reading")
-		} else if r == ')' {
+		if ch == eof {
+			panic(errors.Errorf("unexpected character '%c'", ch))
+		} else if ch == ')' {
 			break
 		}
 
-		self.undo()
+		r.undo()
 
-		obj := self.Read()
+		obj := r.Read()
 		if curr == nil {
 			front.Value = obj
 			curr = front

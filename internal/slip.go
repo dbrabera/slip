@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 
 	"github.com/peterh/liner"
+	"github.com/pkg/errors"
 )
 
 type Slip struct {
@@ -24,46 +24,44 @@ func NewSlip() *Slip {
 	return &Slip{env: env, reader: NewReader()}
 }
 
-func (self *Slip) Repl() int {
+func (s *Slip) Repl() error {
 	liner := liner.NewLiner()
 	defer liner.Close()
 
 	for {
 		line, err := liner.Prompt("slip> ")
-
-		if err == io.EOF {
-			fmt.Println()
-			return 1
-		} else if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading line: %s\n", err)
-			return 1
+		if err != nil {
+			if err == io.EOF {
+				fmt.Println()
+				return nil
+			}
+			return errors.Wrap(err, "failed to read line")
 		}
 
-		self.reader.Init(line)
-		for obj := self.reader.Read(); obj != nil; obj = self.reader.Read() {
-			fmt.Println(obj.Eval(self.env))
+		s.reader.Init(line)
+		for obj := s.reader.Read(); obj != nil; obj = s.reader.Read() {
+			fmt.Println(obj.Eval(s.env))
 		}
 	}
 
-	return 0
+	return nil
 }
 
-func (self *Slip) Run(filename string) int {
+func (s *Slip) Run(filename string) error {
 	src, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading script: %s\n", err)
-		return 1
+		return errors.Wrap(err, "failed to read file")
 	}
 
-	self.reader.Init(string(src))
-	for obj := self.reader.Read(); obj != nil; obj = self.reader.Read() {
-		obj.Eval(self.env)
+	s.reader.Init(string(src))
+	for obj := s.reader.Read(); obj != nil; obj = s.reader.Read() {
+		obj.Eval(s.env)
 	}
-	return 0
+	return nil
 }
 
-func (self *Slip) Exec(src string) Object {
-	self.reader.Init(src)
-	obj := self.reader.Read()
-	return obj.Eval(self.env)
+func (s *Slip) Exec(src string) Object {
+	s.reader.Init(src)
+	obj := s.reader.Read()
+	return obj.Eval(s.env)
 }
