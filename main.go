@@ -62,9 +62,16 @@ func main() {
 	sl := internal.NewSlip()
 
 	if options.Script != "" {
-		os.Exit(sl.Run(options.Script))
-	} else {
-		os.Exit(sl.Repl())
+		if err := sl.Run(options.Script); err != nil {
+			fmt.Fprintf(os.Stderr, "%v", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if err := sl.Repl(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v", err)
+		os.Exit(1)
 	}
 }
 
