@@ -18,7 +18,7 @@ func NewSlip() *Slip {
 	env := NewEnviroment()
 
 	for name, fn := range CoreFuncs {
-		env.Define(NewSymbol(name), NewPrimFunc(fn))
+		env.Define(NewSymbol(name), fn)
 	}
 
 	return &Slip{env: env, reader: NewReader()}
@@ -60,8 +60,8 @@ func (s *Slip) Run(filename string) error {
 	return nil
 }
 
-func (s *Slip) Exec(src string) Object {
+func (s *Slip) Exec(src string) Value {
 	s.reader.Init(src)
-	obj := s.reader.Read()
-	return obj.Eval(s.env)
+	val := s.reader.Read()
+	return val.Eval(s.env)
 }
