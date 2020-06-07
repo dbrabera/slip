@@ -1,26 +1,26 @@
 package internal
 
 type Enviroment struct {
-	symbols map[string]Object
+	symbols map[string]Value
 	parent  *Enviroment
 }
 
 func NewEnviroment() *Enviroment {
-	return &Enviroment{symbols: make(map[string]Object)}
+	return &Enviroment{symbols: make(map[string]Value)}
 }
 
 func NewChildEnviroment(parent *Enviroment) *Enviroment {
-	return &Enviroment{symbols: make(map[string]Object), parent: parent}
+	return &Enviroment{symbols: make(map[string]Value), parent: parent}
 }
 
-func (e *Enviroment) Define(sym *Symbol, obj Object) {
-	e.symbols[sym.Value] = obj
+func (e *Enviroment) Define(sym Symbol, val Value) {
+	e.symbols[string(sym)] = val
 }
 
-func (e *Enviroment) Resolve(sym *Symbol) Object {
-	obj := e.symbols[sym.Value]
-	if obj == nil && e.parent != nil {
+func (e *Enviroment) Resolve(sym Symbol) Value {
+	val := e.symbols[string(sym)]
+	if val == nil && e.parent != nil {
 		return e.parent.Resolve(sym)
 	}
-	return obj
+	return val
 }

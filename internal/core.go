@@ -2,16 +2,15 @@ package internal
 
 import (
 	"fmt"
-	"math"
+	"strings"
 )
 
-var CoreFuncs = map[string]interface{}{
+var CoreFuncs = map[string]NativeFunc{
 	// Arithmetic
 	"+":   Add,
 	"-":   Sub,
 	"*":   Mul,
 	"/":   Div,
-	"rem": Rem,
 	"mod": Mod,
 	"inc": Inc,
 	"dec": Dec,
@@ -32,253 +31,216 @@ var CoreFuncs = map[string]interface{}{
 	"list?":   IsList,
 	"neg?":    IsNeg,
 	"nil?":    IsNil,
-	"number?": IsNumber,
+	"int?":    IsInt,
 	"pos?":    IsPos,
 	"string?": IsString,
 	"symbol?": IsSymbol,
 	"zero?":   IsZero,
 
-	// List
-	"cons":   Cons,
-	"empty?": IsEmpty,
-	"first":  First,
-	"next":   Next,
-
 	// IO
-	"print": Print,
-	//"printf": Printf,
+	"print":   Print,
 	"println": Println,
-	"newline": Newline,
-	//"readline": Readline,
 }
 
-func Add(nums ...Object) Object {
-	res := nums[0].(*Number).Value
+func Add(args ...Value) Value {
+	res := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		res += arg.(*Number).Value
+	for _, arg := range args[1:] {
+		res += arg.(Int)
 	}
 
-	return NewNumber(res)
+	return res
 }
 
-func Sub(nums ...Object) Object {
-	if len(nums) == 1 {
-		return NewNumber(-nums[0].(*Number).Value)
+func Sub(args ...Value) Value {
+	if len(args) == 1 {
+		return Int(-args[0].(Int))
 	}
 
-	res := nums[0].(*Number).Value
+	res := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		res -= arg.(*Number).Value
+	for _, arg := range args[1:] {
+		res -= arg.(Int)
 	}
 
-	return NewNumber(res)
+	return res
 }
 
-func Mul(nums ...Object) Object {
-	res := nums[0].(*Number).Value
+func Mul(args ...Value) Value {
+	res := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		res *= arg.(*Number).Value
+	for _, arg := range args[1:] {
+		res *= arg.(Int)
 	}
 
-	return NewNumber(res)
+	return res
 }
 
-func Div(nums ...Object) Object {
-	if len(nums) == 1 {
-		return NewNumber(1.0 / nums[0].(*Number).Value)
+func Div(args ...Value) Value {
+	if len(args) == 1 {
+		return Int(1.0 / args[0].(Int))
 	}
 
-	res := nums[0].(*Number).Value
+	res := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		res /= arg.(*Number).Value
+	for _, arg := range args[1:] {
+		res /= arg.(Int)
 	}
 
-	return NewNumber(res)
+	return res
 }
 
-func Rem(num Object, div Object) Object {
-	return NewNumber(math.Remainder(num.(*Number).Value, div.(*Number).Value))
+func Mod(args ...Value) Value {
+	return Int(args[0].(Int) % args[1].(Int))
 }
 
-func Mod(num Object, div Object) Object {
-	return NewNumber(math.Mod(num.(*Number).Value, div.(*Number).Value))
+func Inc(args ...Value) Value {
+	return args[0].(Int) + 1
 }
 
-func Inc(num Object) Object {
-	return NewNumber(num.(*Number).Value + 1.0)
+func Dec(args ...Value) Value {
+	return args[0].(Int) - 1
 }
 
-func Dec(num Object) Object {
-	return NewNumber(num.(*Number).Value - 1.0)
-}
+func Gt(args ...Value) Value {
+	x := args[0].(Int)
 
-func Gt(nums ...Object) Object {
-	x := nums[0].(*Number).Value
-
-	for _, arg := range nums[1:] {
-		y := arg.(*Number).Value
+	for _, arg := range args[1:] {
+		y := arg.(Int)
 		if x <= y {
-			return NewBool(false)
+			return False
 		}
 		x = y
 	}
 
-	return NewBool(true)
+	return True
 }
 
-func Ge(nums ...Object) Object {
-	x := nums[0].(*Number).Value
+func Ge(args ...Value) Value {
+	x := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		y := arg.(*Number).Value
+	for _, arg := range args[1:] {
+		y := arg.(Int)
 		if x < y {
-			return NewBool(false)
+			return False
 		}
 		x = y
 	}
 
-	return NewBool(true)
+	return True
 }
 
-func Eq(objs ...Object) Object {
-	x := objs[0]
+func Eq(args ...Value) Value {
+	x := args[0]
 
-	for _, arg := range objs[1:] {
+	for _, arg := range args[1:] {
 		if !x.Equals(arg) {
-			return NewBool(false)
+			return False
 		}
 	}
 
-	return NewBool(true)
+	return True
 }
 
-func Ne(objs ...Object) Object {
-	return Not(Eq(objs...))
+func Ne(args ...Value) Value {
+	return Not(Eq(args...))
 }
 
-func Le(nums ...Object) Object {
-	x := nums[0].(*Number).Value
+func Le(args ...Value) Value {
+	x := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		y := arg.(*Number).Value
+	for _, arg := range args[1:] {
+		y := arg.(Int)
 		if x > y {
-			return NewBool(false)
+			return False
 		}
 		x = y
 	}
 
-	return NewBool(true)
+	return True
 }
 
-func Lt(nums ...Object) Object {
-	x := nums[0].(*Number).Value
+func Lt(args ...Value) Value {
+	x := args[0].(Int)
 
-	for _, arg := range nums[1:] {
-		y := arg.(*Number).Value
+	for _, arg := range args[1:] {
+		y := arg.(Int)
 		if x >= y {
-			return NewBool(false)
+			return False
 		}
 		x = y
 	}
 
-	return NewBool(true)
+	return True
 }
 
-func Not(x Object) Object {
-	if x == nil {
-		return NewBool(true)
+func Not(args ...Value) Value {
+	if args[0] == nil {
+		return True
 	}
-	return NewBool(x.Equals(&falsecons))
+	return NewBool(args[0].Equals(False))
 }
 
-func IsNil(x Object) Object {
-	return NewBool(x.Nil())
+func IsNil(args ...Value) Value {
+	return NewBool(args[0] == nil)
 }
 
-func IsZero(x Object) Object {
-	return NewBool(x.(*Number).Value == 0.0)
+func IsZero(args ...Value) Value {
+	return NewBool(args[0].(Int) == 0)
 }
 
-func IsPos(x Object) Object {
-	return NewBool(x.(*Number).Value > 0)
+func IsPos(args ...Value) Value {
+	return NewBool(args[0].(Int) > 0)
 }
 
-func IsNeg(x Object) Object {
-	return NewBool(x.(*Number).Value < 0)
+func IsNeg(args ...Value) Value {
+	return NewBool(args[0].(Int) < 0)
 }
 
-func IsNumber(x Object) Object {
-	_, ok := x.(*Number)
+func IsInt(args ...Value) Value {
+	_, ok := args[0].(Int)
 	return NewBool(ok)
 }
 
-func IsBool(x Object) Object {
-	_, ok := x.(*Bool)
+func IsBool(args ...Value) Value {
+	_, ok := args[0].(Bool)
 	return NewBool(ok)
 }
 
-func IsString(x Object) Object {
-	_, ok := x.(*String)
+func IsString(args ...Value) Value {
+	_, ok := args[0].(String)
 	return NewBool(ok)
 }
 
-func IsList(x Object) Object {
-	_, ok := x.(*Cell)
+func IsList(args ...Value) Value {
+	_, ok := args[0].(List)
 	return NewBool(ok)
 }
 
-func IsSymbol(x Object) Object {
-	_, ok := x.(*Symbol)
+func IsSymbol(args ...Value) Value {
+	_, ok := args[0].(Symbol)
 	return NewBool(ok)
 }
 
-func Cons(x Object, ls Object) Object {
-	return ls.(List).Cons(x)
+func IsEmpty(args ...Value) Value {
+	return NewBool(args[0].(List).IsEmpty())
 }
 
-func IsEmpty(ls Object) Object {
-	if ls == nil {
-		return nil
-	}
-	return NewBool(ls.(List).IsEmpty())
-}
-
-func First(ls Object) Object {
-	if ls == nil {
-		return nil
-	}
-	return ls.(List).First()
-}
-
-func Next(ls Object) Object {
-	if ls == nil {
-		return nil
-	}
-	return ls.(List).Next()
-}
-
-func Print(objs ...Object) Object {
-	l := len(objs)
-	for i, arg := range objs {
-		fmt.Print(arg)
-		if i < l-1 {
-			fmt.Print(" ")
+func Print(args ...Value) Value {
+	elems := make([]string, len(args))
+	for i, arg := range args {
+		if arg == nil {
+			elems[i] = "nil"
+		} else {
+			elems[i] = fmt.Sprint(arg)
 		}
 	}
+	fmt.Print(strings.Join(elems, " "))
 	return nil
 }
 
-func Println(objs ...Object) Object {
-	Print(objs...)
-	fmt.Println()
-	return nil
-}
-
-func Newline() Object {
+func Println(args ...Value) Value {
+	Print(args...)
 	fmt.Println()
 	return nil
 }

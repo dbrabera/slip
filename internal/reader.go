@@ -26,7 +26,7 @@ func (r *Reader) Init(source string) {
 	r.offset = 0
 }
 
-func (r *Reader) Read() Object {
+func (r *Reader) Read() Value {
 	r.ignoreWhitespace()
 
 	switch ch := r.next(); {
@@ -89,7 +89,7 @@ func (r *Reader) ignoreWhitespace() {
 	}
 }
 
-func (r *Reader) readNumber() Object {
+func (r *Reader) readNumber() Value {
 	start := r.offset
 	point := false
 
@@ -110,14 +110,14 @@ func (r *Reader) readNumber() Object {
 		}
 	}
 
-	value, err := strconv.ParseFloat(r.source[start:r.offset], 64)
+	value, err := strconv.ParseInt(r.source[start:r.offset], 10, 64)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to parse float"))
 	}
-	return NewNumber(value)
+	return NewInt(value)
 }
 
-func (r *Reader) readIdent() Object {
+func (r *Reader) readIdent() Value {
 	start := r.offset
 	if ch := r.next(); !isIdentHead(ch) {
 		panic(errors.Errorf("unexpected character '%c'", ch))
@@ -132,9 +132,9 @@ func (r *Reader) readIdent() Object {
 
 	switch lexeme := r.source[start:r.offset]; lexeme {
 	case "true":
-		return NewBool(true)
+		return True
 	case "false":
-		return NewBool(false)
+		return False
 	default:
 		return NewSymbol(lexeme)
 	}
@@ -148,7 +148,7 @@ func isIdentBody(r rune) bool {
 	return isIdentHead(r) || unicode.IsDigit(r)
 }
 
-func (r *Reader) readString() Object {
+func (r *Reader) readString() Value {
 	if ch := r.next(); ch != '"' {
 		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
@@ -166,13 +166,12 @@ func (r *Reader) readString() Object {
 	}
 }
 
-func (r *Reader) readList() Object {
+func (r *Reader) readList() Value {
 	if ch := r.next(); ch != '(' {
 		panic(errors.Errorf("unexpected character '%c'", ch))
 	}
 
-	var front *Cell = &Cell{}
-	var curr *Cell = nil
+	l := NewList()
 
 	for {
 		r.ignoreWhitespace()
@@ -187,15 +186,8 @@ func (r *Reader) readList() Object {
 
 		r.undo()
 
-		obj := r.Read()
-		if curr == nil {
-			front.Value = obj
-			curr = front
-		} else {
-			curr.More = NewCell(obj, nil)
-			curr = curr.More
-		}
+		l = append(l, r.Read())
 	}
 
-	return front
+	return l
 }
