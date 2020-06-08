@@ -10,8 +10,7 @@ import (
 )
 
 type Slip struct {
-	env    *Enviroment
-	reader *Reader
+	env *Enviroment
 }
 
 func NewSlip() *Slip {
@@ -21,7 +20,7 @@ func NewSlip() *Slip {
 		env.Define(NewSymbol(name), fn)
 	}
 
-	return &Slip{env: env, reader: NewReader()}
+	return &Slip{env: env}
 }
 
 func (s *Slip) Repl() error {
@@ -38,9 +37,13 @@ func (s *Slip) Repl() error {
 			return errors.Wrap(err, "failed to read line")
 		}
 
-		s.reader.Init(line)
-		for obj := s.reader.Read(); obj != nil; obj = s.reader.Read() {
-			fmt.Println(obj.Eval(s.env))
+		values, err := Parse(line)
+		if err != nil {
+			return err
+		}
+
+		for _, value := range values {
+			fmt.Println(value.Eval(s.env))
 		}
 	}
 
@@ -53,15 +56,26 @@ func (s *Slip) Run(filename string) error {
 		return errors.Wrap(err, "failed to read file")
 	}
 
-	s.reader.Init(string(src))
-	for obj := s.reader.Read(); obj != nil; obj = s.reader.Read() {
-		obj.Eval(s.env)
+	values, err := Parse(string(src))
+	if err != nil {
+		return err
+	}
+
+	for _, value := range values {
+		value.Eval(s.env)
 	}
 	return nil
 }
 
-func (s *Slip) Exec(src string) Value {
-	s.reader.Init(src)
-	val := s.reader.Read()
-	return val.Eval(s.env)
+func (s *Slip) Exec(src string) (Value, error) {
+	values, err := Parse(string(src))
+	if err != nil {
+		return nil, err
+	}
+
+	var out Value
+	for _, value := range values {
+		out = value.Eval(s.env)
+	}
+	return out, nil
 }

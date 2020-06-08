@@ -16,18 +16,18 @@ const (
 	TLeftParen
 	TRightParen
 	TString
-	TNumber
+	TInt
 	TBool
-	TIdent
+	TSymbol
 )
 
 var tokenKinds = [...]string{
 	TLeftParen:  "(",
 	TRightParen: ")",
 	TString:     "STRING",
-	TNumber:     "NUMBER",
+	TInt:        "INT",
 	TBool:       "BOOL",
-	TIdent:      "IDENT",
+	TSymbol:     "SYMBOL",
 }
 
 func (t TokenKind) String() string {
@@ -39,7 +39,8 @@ func (t TokenKind) String() string {
 
 // Token represents a token of the language.
 type Token struct {
-	Kind TokenKind
+	Kind   TokenKind
+	Lexeme string
 }
 
 // Tokenize converts a string into a list of tokens.
@@ -64,17 +65,29 @@ func Tokenize(s string) ([]Token, error) {
 // Lexer holds the state required to tokenize a source and generates
 // a stream of tokens until the source is consumed.
 type Lexer struct {
-	scanner io.RuneScanner
+	scanner   io.RuneScanner
+	lookahead *lookahead
+}
+
+type lookahead struct {
+	token *Token
+	err   error
 }
 
 // NewLexer creates a new Lexer initalized with the given io.RuneScanner.
 func NewLexer(scanner io.RuneScanner) *Lexer {
-	return &Lexer{scanner}
+	return &Lexer{scanner, nil}
 }
 
 // Next returns the next token or io.EOF when the end
 // of the source is reached.
 func (l *Lexer) Next() (*Token, error) {
+	if l.lookahead != nil {
+		token, err := l.lookahead.token, l.lookahead.err
+		l.lookahead = nil
+		return token, err
+	}
+
 	if err := l.skipWhitespace(); err != nil {
 		return nil, err
 	}
@@ -86,18 +99,35 @@ func (l *Lexer) Next() (*Token, error) {
 
 	switch {
 	case r == '(':
-		return &Token{TLeftParen}, nil
+		return &Token{TLeftParen, ""}, nil
 	case r == ')':
-		return &Token{TRightParen}, nil
+		return &Token{TRightParen, ""}, nil
 	case r == '"':
 		return l.readString()
 	case unicode.IsDigit(r):
-		return l.readNumber(r)
-	case unicode.IsLetter(r):
+		return l.readInt(r)
+	case isIdent(r):
 		return l.readIdent(r)
 	}
 
 	return nil, fmt.Errorf("unexpected rune '%c'", r)
+}
+
+func (l *Lexer) Peek() (*Token, error) {
+	if l.lookahead != nil {
+		return l.lookahead.token, l.lookahead.err
+	}
+
+	token, err := l.Next()
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	l.lookahead = &lookahead{
+		token: token,
+		err:   err,
+	}
+	return token, err
 }
 
 func (l *Lexer) read() (rune, error) {
@@ -125,6 +155,8 @@ func (l *Lexer) skipWhitespace() error {
 }
 
 func (l *Lexer) readString() (*Token, error) {
+	buf := []rune{}
+
 	for {
 		r, err := l.read()
 		if err != nil {
@@ -134,34 +166,32 @@ func (l *Lexer) readString() (*Token, error) {
 			return nil, err
 		}
 		if r == '"' {
-			return &Token{TString}, nil
+			return &Token{TString, string(buf)}, nil
 		}
+		buf = append(buf, r)
 	}
 }
 
-func (l *Lexer) readNumber(r rune) (*Token, error) {
-	hasDot := false
+func (l *Lexer) readInt(r rune) (*Token, error) {
+	buf := []rune{r}
 
 	for {
 		r, err := l.read()
 		if err != nil {
 			if err == io.EOF {
-				return &Token{TNumber}, nil
+				return &Token{TInt, string(buf)}, nil
 			}
 			return nil, err
-		}
-
-		if r == '.' && !hasDot {
-			hasDot = true
-			continue
 		}
 
 		if !unicode.IsDigit(r) {
 			if err := l.unread(); err != nil {
 				return nil, err
 			}
-			return &Token{TNumber}, nil
+			return &Token{TInt, string(buf)}, nil
 		}
+
+		buf = append(buf, r)
 	}
 }
 
@@ -172,7 +202,7 @@ var keywords = map[string]TokenKind{
 }
 
 func (l *Lexer) readIdent(r rune) (*Token, error) {
-	lexeme := []rune{r}
+	buf := []rune{r}
 
 	for {
 		r, err := l.read()
@@ -183,25 +213,33 @@ func (l *Lexer) readIdent(r rune) (*Token, error) {
 			return nil, err
 		}
 
-		if !isAlphaNumeric(r) {
+		if !isIdent(r) {
 			if err := l.unread(); err != nil {
 				return nil, err
 			}
 			break
 		}
 
-		lexeme = append(lexeme, r)
+		buf = append(buf, r)
 	}
 
-	kind, ok := keywords[string(lexeme)]
+	lexeme := string(buf)
+
+	kind, ok := keywords[lexeme]
 	if !ok {
-		return &Token{TIdent}, nil
+		return &Token{TSymbol, lexeme}, nil
 	}
 
-	return &Token{kind}, nil
+	return &Token{kind, lexeme}, nil
 }
 
-// isAlphaNumeric returns whether the rule is an alphanumeric character.
-func isAlphaNumeric(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_'
+// isIdent returns whether the rune can belong to an identifier.
+func isIdent(r rune) bool {
+	switch r {
+	case '!', '@', '$', '%', '^', '&', '*', '-', '_', '+', '=', '|',
+		'~', ':', '<', '>', '.', '?', '\\', '/', ',':
+		return true
+	default:
+		return unicode.IsLetter(r) || unicode.IsDigit(r)
+	}
 }
