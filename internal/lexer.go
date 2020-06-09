@@ -79,8 +79,8 @@ func NewLexer(scanner io.RuneScanner) *Lexer {
 	return &Lexer{scanner, nil}
 }
 
-// Next returns the next token or io.EOF when the end
-// of the source is reached.
+// Next consumes and returns the next token. It returns
+// io.EOF when the end is reached.
 func (l *Lexer) Next() (*Token, error) {
 	if l.lookahead != nil {
 		token, err := l.lookahead.token, l.lookahead.err
@@ -104,6 +104,18 @@ func (l *Lexer) Next() (*Token, error) {
 		return &Token{TRightParen, ""}, nil
 	case r == '"':
 		return l.readString()
+	case r == '-':
+		p, err := l.peek()
+		if err != nil {
+			if err == io.EOF {
+				return l.readIdent(r)
+			}
+			return nil, err
+		}
+		if unicode.IsDigit(p) {
+			return l.readInt(r)
+		}
+		return l.readIdent(r)
 	case unicode.IsDigit(r):
 		return l.readInt(r)
 	case isIdent(r):
@@ -113,6 +125,9 @@ func (l *Lexer) Next() (*Token, error) {
 	return nil, fmt.Errorf("unexpected rune '%c'", r)
 }
 
+// Peek returns the next token on the source
+// without consuming it. It returns io.EOF when
+// the end is reached.
 func (l *Lexer) Peek() (*Token, error) {
 	if l.lookahead != nil {
 		return l.lookahead.token, l.lookahead.err
@@ -130,11 +145,24 @@ func (l *Lexer) Peek() (*Token, error) {
 	return token, err
 }
 
+// peek returns the next rune on the source
+// without consuming it.
+func (l *Lexer) peek() (rune, error) {
+	r, err := l.read()
+	if err != nil {
+		return r, err
+	}
+	return r, l.unread()
+}
+
+// read consumes and returns the next rune on the source.
 func (l *Lexer) read() (rune, error) {
 	r, _, err := l.scanner.ReadRune()
 	return r, err
 }
 
+// unread causes the next call to read to return
+// the same rune as the previous call.
 func (l *Lexer) unread() error {
 	return l.scanner.UnreadRune()
 }

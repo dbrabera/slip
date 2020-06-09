@@ -107,9 +107,9 @@ func TestSlip_Exec(t *testing.T) {
 		{"(zero? 1)", "false"},
 
 		{"(pos? 1)", "true"},
-		// {"(pos? -1)", "false"},
+		{"(pos? -1)", "false"},
 
-		// {"(neg? -1)", "true"},
+		{"(neg? -1)", "true"},
 		{"(neg? 1)", "false"},
 
 		{"(int? 1)", "true"},

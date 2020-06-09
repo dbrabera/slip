@@ -15,6 +15,7 @@ func TestTokenize(t *testing.T) {
 		{"( )", []TokenKind{TLeftParen, TRightParen}},
 		{`"" "foo"`, []TokenKind{TString, TString}},
 		{"1 12 123", []TokenKind{TInt, TInt, TInt}},
+		{"- -1 -a", []TokenKind{TSymbol, TInt, TSymbol}},
 		{"true false foo", []TokenKind{TBool, TBool, TSymbol}},
 		{"!@$%^&*-_+=|~:<>.?\\/,", []TokenKind{TSymbol}},
 	}
