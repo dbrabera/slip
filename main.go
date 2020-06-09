@@ -3,14 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/dbrabera/slip/internal"
 )
-
-const Version = "0.0.1"
-
-var GitCommit string
 
 type Options struct {
 	Help    bool
@@ -48,39 +45,43 @@ func parse(args []string) (*Options, error) {
 func main() {
 	options, err := parse(os.Args[1:])
 	if err != nil {
-		os.Exit(usage())
+		exit(usage())
 	}
 
 	if options.Help {
-		os.Exit(usage())
+		exit(usage())
 	}
 
 	if options.Version {
-		os.Exit(version())
+		exit(version())
 	}
-
-	sl := internal.NewSlip()
 
 	if options.Script != "" {
-		if err := sl.Run(options.Script); err != nil {
-			fmt.Fprintf(os.Stderr, "%v", err)
-			os.Exit(1)
-		}
-		return
+		exit(exec(options.Script))
 	}
 
-	if err := sl.Repl(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(1)
+	exit(repl())
+}
+
+func exec(file string) error {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
 	}
+	_, err = internal.Eval(string(data), internal.NewEnviroment())
+	return err
 }
 
-func version() int {
-	fmt.Printf("Slip %s (%s)\n", Version, GitCommit)
-	return 0
+func repl() error {
+	return internal.REPL()
 }
 
-func usage() int {
+func version() error {
+	fmt.Printf("Slip %s\n", internal.Version)
+	return nil
+}
+
+func usage() error {
 	fmt.Fprintln(os.Stderr, "Usage: slip [options] [script [args]]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Options:")
@@ -88,5 +89,13 @@ func usage() int {
 	fmt.Fprintln(os.Stderr, "-h, --help       Show this help")
 	fmt.Fprintln(os.Stderr, "-v, --version    Show version information")
 	fmt.Fprintln(os.Stderr, "")
-	return 1
+	return nil
+}
+
+func exit(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	os.Exit(0)
 }

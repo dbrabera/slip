@@ -1,5 +1,6 @@
-GIT_COMMIT=$(shell git rev-parse HEAD)
-LDFLAGS=-ldflags "-X main.GitCommit=$(GIT_COMMIT)"
+PACKAGE=github.com/dbrabera/slip
+VERSION?=$(shell git describe --always --dirty)
+LDFLAGS=-ldflags "-X $(PACKAGE)/internal.Version=$(VERSION)"
 
 build:
 	@go build $(LDFLAGS) -o bin/slip main.go
