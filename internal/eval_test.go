@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSlip_Exec(t *testing.T) {
+func TestEval(t *testing.T) {
 	cases := []struct {
 		s        string
 		expected string
@@ -129,9 +129,7 @@ func TestSlip_Exec(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		slip := NewSlip()
-
-		value, err := slip.Exec(c.s)
+		value, err := Eval(c.s, NewEnviroment())
 		if err != nil {
 			t.Fatalf("%d: err: %v", i, err)
 		}

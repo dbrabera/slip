@@ -16,8 +16,11 @@ Once you have slip command avaliable, you can start the REPL and run expressions
 
 ```
 $ slip
-slip> (println "It's ALIVE!")
-It's ALIVE!
+Slip f29f33b
+slip:1:> (println "It's ALIVE!")
+"It's ALIVE!"
+nil
+slip:2:>
 ```
 
 Alternatively you can execute pass the path for a slip `.sp` file to execute a script:
