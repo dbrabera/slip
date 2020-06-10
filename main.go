@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,62 +9,53 @@ import (
 	"github.com/dbrabera/slip/internal"
 )
 
-type Options struct {
-	Help    bool
-	Version bool
-	Script  string
-	Args    []string
-}
-
-func parse(args []string) (*Options, error) {
-	var options Options
-
-	for i, arg := range args {
-		if arg == "-h" || arg == "--help" {
-			options.Help = true
-			continue
-		}
-
-		if arg == "-v" || arg == "--version" {
-			options.Version = true
-			continue
-		}
-
-		if arg[0] == '-' {
-			return nil, errors.New("Unexpected flag")
-		}
-
-		options.Script = arg
-		options.Args = args[i+1:]
-		break
-	}
-
-	return &options, nil
+// options contain the parsed command-line flags and arguments of the program.
+type options struct {
+	ShowHelp    bool
+	ShowVersion bool
+	Args        []string
 }
 
 func main() {
-	options, err := parse(os.Args[1:])
-	if err != nil {
-		exit(usage())
-	}
+	opts := parse()
 
-	if options.Help {
+	switch {
+	case opts.ShowHelp:
 		exit(usage())
-	}
-
-	if options.Version {
+	case opts.ShowVersion:
 		exit(version())
+	case len(opts.Args) == 0:
+		exit(repl())
+	default:
+		exit(exec(opts.Args[0]))
 	}
-
-	if options.Script != "" {
-		exit(exec(options.Script))
-	}
-
-	exit(repl())
 }
 
-func exec(file string) error {
-	data, err := ioutil.ReadFile(file)
+// parse parses the command-line flags and arguments.
+func parse() options {
+	opts := options{}
+
+	flag.BoolVar(&opts.ShowHelp, "h", false, "Show this help")
+	flag.BoolVar(&opts.ShowVersion, "v", false, "Show this version")
+
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "Usage: slip [options] [script]")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "An experimental lisp dialect.")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "Options:")
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+
+	opts.Args = flag.Args()
+	return opts
+}
+
+// exec read, parses and evaluates the given file.
+func exec(filename string) error {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -72,26 +63,25 @@ func exec(file string) error {
 	return err
 }
 
+// repl executes a Read-eval-print loop until the program is terminated.
 func repl() error {
 	return internal.REPL()
 }
 
+// version prints the version number.
 func version() error {
 	fmt.Printf("Slip %s\n", internal.Version)
 	return nil
 }
 
+// usage prints the usage
 func usage() error {
-	fmt.Fprintln(os.Stderr, "Usage: slip [options] [script [args]]")
-	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "Options:")
-	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "-h, --help       Show this help")
-	fmt.Fprintln(os.Stderr, "-v, --version    Show version information")
-	fmt.Fprintln(os.Stderr, "")
+	flag.Usage()
 	return nil
 }
 
+// exit terminates the program with the conventional exit codes depending
+// on the given error.
 func exit(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
