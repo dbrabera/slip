@@ -5,10 +5,13 @@ LDFLAGS=-ldflags "-X $(PACKAGE)/internal.Version=$(VERSION)"
 build:
 	@go build $(LDFLAGS) -o bin/slip main.go
 
+lint:
+	@golangci-lint run ./...
+
 test:
 	@go test ./...
 
 clean:
 	@rm -rf bin
 
-.PHONY: build test clean
+.PHONY: build lint test clean

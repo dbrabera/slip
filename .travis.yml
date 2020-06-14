@@ -5,6 +5,10 @@ go_import_path: github.com/dbrabera/slip
 go:
   - "1.14"
 
+install:
+  - go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.27.0
+
 script:
   - make build
+  - make lint
   - make test

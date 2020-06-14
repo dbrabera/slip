@@ -40,6 +40,7 @@ It's ALIVE!
 ### Prerequisites
 
 - Go (1.14 or later)
+- Golangci-lint (1.27 or later)
 
 ### Build
 
@@ -47,6 +48,14 @@ To build the source code do:
 
 ```
 $ make build
+```
+
+### Lint
+
+To lint the source code do:
+
+```
+$ make lint
 ```
 
 ### Test
