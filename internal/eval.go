@@ -24,7 +24,7 @@ type Enviroment struct {
 func NewEnviroment() *Enviroment {
 	env := &Enviroment{symbols: make(map[string]Value)}
 
-	for name, fn := range CoreFuncs {
+	for name, fn := range BuiltInFuncs {
 		env.Define(NewSymbol(name), fn)
 	}
 

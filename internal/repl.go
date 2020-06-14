@@ -34,8 +34,8 @@ func REPL() error {
 		}
 
 		for _, value := range values {
-			// use core Println function to correctly print all values
-			Println(value.Eval(env))
+			// use built-in println function to correctly print all values
+			println(value.Eval(env))
 		}
 	}
 
