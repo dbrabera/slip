@@ -68,9 +68,9 @@ $ make test
 
 ## Documentation
 
-- [Special Forms](https://github.com/dbrabera/slip/blob/master/docs/forms.md)
+- [Special Forms](./docs/forms.md)
 
-- [Built-In Functions](https://github.com/dbrabera/slip/blob/master/docs/core.md)
+- [Built-In Functions](./docs/builtin.md)
 
 ## License
 
