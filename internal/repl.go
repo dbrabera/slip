@@ -1,30 +1,29 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"io"
-
-	"github.com/peterh/liner"
-	"github.com/pkg/errors"
+	"os"
 )
 
 // REPL executes a Read-eval-print loop until the program is closed.
 func REPL() error {
-	env := NewEnviroment()
-
-	liner := liner.NewLiner()
-	defer liner.Close()
-
 	fmt.Printf("Slip %s\n", Version)
 
-	for ln := 1; true; ln++ {
-		line, err := liner.Prompt(fmt.Sprintf("slip:%d:> ", ln))
+	env := NewEnviroment()
+	reader := bufio.NewReader(os.Stdin)
+
+	for lineNo := 0; ; lineNo++ {
+		fmt.Printf("slip:%d:> ", lineNo)
+
+		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
 				fmt.Println()
 				return nil
 			}
-			return errors.Wrap(err, "failed to read line")
+			return fmt.Errorf("failed to read line: %v", err)
 		}
 
 		values, err := Parse(line)
@@ -38,6 +37,4 @@ func REPL() error {
 			println(value.Eval(env))
 		}
 	}
-
-	return nil
 }

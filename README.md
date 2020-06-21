@@ -4,6 +4,8 @@
 
 **Slip** is a Lisp dialect built to learn more about the implementation of programming languages and for the fun of it.
 
+It is implemented _from scratch_, without using any dependencies appart from the standard library.
+
 ## Try it yourself
 
 At the moment there are no binary releases for the language. To try it yourself you would need to build it from source by either cloning this repository or by executing `go get`:
