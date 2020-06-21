@@ -98,6 +98,11 @@ func (l *Lexer) Next() (*Token, error) {
 	}
 
 	switch {
+	case r == ';':
+		if err := l.skipLine(); err != nil {
+			return nil, err
+		}
+		return l.Next()
 	case r == '(':
 		return &Token{TLeftParen, ""}, nil
 	case r == ')':
@@ -177,6 +182,19 @@ func (l *Lexer) skipWhitespace() error {
 			if err := l.unread(); err != nil {
 				return err
 			}
+			return nil
+		}
+	}
+}
+
+func (l *Lexer) skipLine() error {
+	for {
+		r, err := l.read()
+		if err != nil {
+			return nil
+		}
+
+		if r == '\n' {
 			return nil
 		}
 	}
