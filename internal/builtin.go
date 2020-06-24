@@ -6,8 +6,6 @@ import (
 )
 
 // BuiltInFuncs contains all the native functions predefined in the global environment.
-//
-// The documentation for the functions can be found in `docs/builtin.md`
 var BuiltInFuncs = map[string]NativeFunc{
 	// Arithmetic
 	"+":   add,
@@ -258,6 +256,8 @@ func print(args ...Value) Value {
 	for i, arg := range args {
 		if arg == nil {
 			elems[i] = "nil"
+		} else if v, ok := arg.(String); ok {
+			elems[i] = string(v)
 		} else {
 			elems[i] = fmt.Sprint(arg)
 		}

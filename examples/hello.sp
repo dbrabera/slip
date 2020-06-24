@@ -1,3 +1,3 @@
-; Prints "Hello, world!" to stdout
+;; Prints "Hello, world!" to stdout
 
 (println "Hello, world!")

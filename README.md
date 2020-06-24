@@ -20,7 +20,7 @@ Once you have slip command avaliable, you can start the REPL and run expressions
 $ slip
 Slip f29f33b
 slip:1:> (println "It's ALIVE!")
-"It's ALIVE!"
+It's ALIVE!
 nil
 slip:2:>
 ```
@@ -28,14 +28,18 @@ slip:2:>
 Alternatively you can execute pass the path for a slip `.sp` file to execute a script:
 
 ```
-$ cat hello.sp
-(println "It's ALIVE!")
+$ cat exmaples/hello.sp
+(println "Hello, world!")
 ```
 
 ```
-$ slip hellp.sp
-It's ALIVE!
+$ slip examples/hello.sp
+Hello, world!
 ```
+
+## Examples
+
+An annotated tour of the language can be found at [examples/tour.sp](./examples/tour.sp). This script follows the style of the [Learn X in Y minutes](learnxinyminutes.com) docs and is intented to showcase the implemented features. More examples can be found in the same directory.
 
 ## Development
 
@@ -67,12 +71,6 @@ To run the tests do:
 ```
 $ make test
 ```
-
-## Documentation
-
-- [Special Forms](./docs/forms.md)
-
-- [Built-In Functions](./docs/builtin.md)
 
 ## License
 

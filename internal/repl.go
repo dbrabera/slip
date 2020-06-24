@@ -33,8 +33,12 @@ func REPL() error {
 		}
 
 		for _, value := range values {
-			// use built-in println function to correctly print all values
-			println(value.Eval(env))
+			res := value.Eval(env)
+			if res == nil {
+				fmt.Println("nil")
+			} else {
+				fmt.Println(res)
+			}
 		}
 	}
 }
