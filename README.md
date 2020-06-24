@@ -39,7 +39,9 @@ Hello, world!
 
 ## Examples
 
-An annotated tour of the language can be found at [examples/tour.sp](./examples/tour.sp). This script follows the style of the [Learn X in Y minutes](learnxinyminutes.com) docs and is intented to showcase the implemented features. More examples can be found in the same directory.
+An annotated tour of the language can be found at [examples/tour.sp](./examples/tour.sp). This script follows the style of the [Learn X in Y minutes](learnxinyminutes.com) docs and is intented to showcase the implemented features.
+
+More examples can be found in the [same directory](./examples).
 
 ## Development
 
